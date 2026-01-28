@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileUpload } from '@/components/ui/file-upload'
 import { CopilotSidebar } from '@/components/ads/CopilotSidebar'
+import { ResearchSidebar } from '@/components/ads/ResearchSidebar'
 import { ANGLES, FORMATS, FUNNEL_STAGES, SOURCE_TYPES } from '@/lib/constants'
 import { generateAdName } from '@/lib/name-generator'
 
@@ -17,6 +18,8 @@ export function AdForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'research' | 'copilot'>('research')
 
   const [formData, setFormData] = useState({
     concept: '',
@@ -31,6 +34,7 @@ export function AdForm() {
     testingBudget: '50',
     thumbnailUrl: '',
     dueDate: '',
+    avatarId: '',
   })
 
   const [generatedName, setGeneratedName] = useState('')
@@ -83,6 +87,7 @@ export function AdForm() {
           status: targetStatus,
           testingBudget: parseFloat(formData.testingBudget) || 50,
           dueDate: formData.dueDate || null,
+          avatarId: formData.avatarId || null,
         }),
       })
 
@@ -102,6 +107,21 @@ export function AdForm() {
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const handleSelectAvatar = (avatarId: string | null) => {
+    setSelectedAvatarId(avatarId)
+    setFormData(prev => ({ ...prev, avatarId: avatarId || '' }))
+  }
+
+  const handleInsertText = (text: string, field: 'concept' | 'hypothesis') => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field] ? `${prev[field]}\n\n${text}` : text
+    }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
@@ -317,14 +337,49 @@ export function AdForm() {
       </CardContent>
     </Card>
 
-      {/* Copilot Sidebar */}
+      {/* Sidebar with Tabs */}
       <div className="lg:col-span-1">
-        <div className="sticky top-6">
-          <CopilotSidebar
-            angle={formData.angle}
-            format={formData.format}
-            concept={formData.concept}
-          />
+        <div className="sticky top-6 space-y-3">
+          {/* Tab Buttons */}
+          <div className="flex gap-1 p-1 bg-muted rounded-lg">
+            <button
+              onClick={() => setActiveTab('research')}
+              className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'research'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Research
+            </button>
+            <button
+              onClick={() => setActiveTab('copilot')}
+              className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'copilot'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Copilot
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
+            {activeTab === 'research' ? (
+              <ResearchSidebar
+                selectedAvatarId={selectedAvatarId}
+                onSelectAvatar={handleSelectAvatar}
+                onInsertText={handleInsertText}
+              />
+            ) : (
+              <CopilotSidebar
+                angle={formData.angle}
+                format={formData.format}
+                concept={formData.concept}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

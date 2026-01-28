@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       testingBudget,
       thumbnailUrl,
       dueDate,
+      avatarId,
     } = body
 
     // Validation
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
         testingBudget: testingBudget || 50,
         thumbnailUrl: thumbnailUrl || null,
         dueDate: dueDate ? new Date(dueDate) : null,
+        avatarId: avatarId || null,
       },
     })
 
