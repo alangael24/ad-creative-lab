@@ -116,6 +116,30 @@ export const ORGANIC_STYLES = [
   { value: 'news', label: 'Noticias/Trends', description: 'Contenido informativo actual' },
 ] as const
 
+// === COMPETIDORES ===
+
+export const COMPETITOR_PLATFORMS = [
+  { value: 'tiktok', label: 'TikTok', icon: '🎵' },
+  { value: 'facebook', label: 'Facebook', icon: '📘' },
+  { value: 'instagram', label: 'Instagram', icon: '📷' },
+  { value: 'youtube', label: 'YouTube', icon: '▶️' },
+  { value: 'meta_library', label: 'Meta Ad Library', icon: '📚' },
+  { value: 'other', label: 'Otro', icon: '🔗' },
+] as const
+
+export const COMPETITOR_AD_TAGS = [
+  { value: 'ugc', label: 'UGC', color: 'bg-pink-500' },
+  { value: 'testimonial', label: 'Testimonio', color: 'bg-purple-500' },
+  { value: 'product_demo', label: 'Demo Producto', color: 'bg-blue-500' },
+  { value: 'before_after', label: 'Antes/Después', color: 'bg-green-500' },
+  { value: 'offer', label: 'Oferta', color: 'bg-yellow-500' },
+  { value: 'educational', label: 'Educativo', color: 'bg-cyan-500' },
+  { value: 'storytelling', label: 'Storytelling', color: 'bg-orange-500' },
+  { value: 'reaction', label: 'Reacción', color: 'bg-red-500' },
+  { value: 'unboxing', label: 'Unboxing', color: 'bg-amber-500' },
+  { value: 'trending_sound', label: 'Sonido Trending', color: 'bg-violet-500' },
+] as const
+
 export type Angle = typeof ANGLES[number]['value']
 export type Format = typeof FORMATS[number]['value']
 export type FunnelStage = typeof FUNNEL_STAGES[number]['value']

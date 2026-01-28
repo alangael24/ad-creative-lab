@@ -197,3 +197,52 @@ model ResearchItem {
 
   createdAt   DateTime @default(now())
 }
+
+// === MÓDULO DE COMPETIDORES (Swipe File) ===
+
+model Competitor {
+  id          String   @id @default(cuid())
+  name        String   // Nombre de la marca/competidor
+  description String?  // Descripción del competidor
+  website     String?  // Sitio web
+  tiktok      String?  // @handle de TikTok
+  instagram   String?  // @handle de Instagram
+  facebook    String?  // Página de Facebook
+  notes       String?  // Notas generales sobre el competidor
+
+  // Relaciones
+  ads         CompetitorAd[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CompetitorAd {
+  id          String   @id @default(cuid())
+
+  // Media
+  mediaUrl    String   // URL del video/imagen guardado
+  mediaType   String   @default("video") // "video" | "image" | "carousel"
+  thumbnailUrl String? // Thumbnail para preview
+
+  // Información del ad
+  title       String?  // Título descriptivo
+  sourceUrl   String?  // URL original donde se encontró
+  platform    String?  // "tiktok" | "facebook" | "instagram" | "youtube"
+
+  // Análisis
+  hook        String?  // Hook que usan
+  angle       String?  // Ángulo que usan
+  cta         String?  // CTA que usan
+  whatWorks   String?  // ¿Qué funciona de este ad?
+  notes       String?  // Notas adicionales
+
+  // Tags para filtrar
+  tags        String?  // JSON array: ["ugc", "testimonial", "offer"]
+
+  // Conexión con competidor
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
