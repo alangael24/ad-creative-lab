@@ -4,6 +4,7 @@ import { MoneyInLimbo } from '@/components/dashboard/MoneyInLimbo'
 import { ActionAlerts } from '@/components/dashboard/ActionAlerts'
 import { DueDateAlerts } from '@/components/dashboard/DueDateAlerts'
 import { TrendChart } from '@/components/dashboard/TrendChart'
+import { TagDistribution } from '@/components/dashboard/TagDistribution'
 import { prisma } from '@/lib/db'
 
 async function getStats() {
@@ -125,6 +126,39 @@ async function getStats() {
     orderBy: { dueDate: 'asc' },
   })
 
+  // Aggregate fail reasons and success factors
+  const failReasonCounts: Record<string, number> = {}
+  const successFactorCounts: Record<string, number> = {}
+
+  completedAds.forEach(ad => {
+    if (ad.failReasons) {
+      try {
+        const reasons = JSON.parse(ad.failReasons) as string[]
+        reasons.forEach(r => {
+          failReasonCounts[r] = (failReasonCounts[r] || 0) + 1
+        })
+      } catch { /* ignore */ }
+    }
+    if (ad.successFactors) {
+      try {
+        const factors = JSON.parse(ad.successFactors) as string[]
+        factors.forEach(f => {
+          successFactorCounts[f] = (successFactorCounts[f] || 0) + 1
+        })
+      } catch { /* ignore */ }
+    }
+  })
+
+  const topFailReasons = Object.entries(failReasonCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([reason, count]) => ({ reason, count }))
+
+  const topSuccessFactors = Object.entries(successFactorCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([factor, count]) => ({ factor, count }))
+
   return {
     hitRate,
     totalAnalyzed,
@@ -142,6 +176,8 @@ async function getStats() {
       ...ad,
       dueDate: ad.dueDate!.toISOString(),
     })),
+    topFailReasons,
+    topSuccessFactors,
   }
 }
 
@@ -200,6 +236,13 @@ export default async function DashboardPage() {
           <TrendChart data={stats.trendData} />
         </CardContent>
       </Card>
+
+      {/* Tag Distribution */}
+      <TagDistribution
+        topFailReasons={stats.topFailReasons}
+        topSuccessFactors={stats.topSuccessFactors}
+        totalAnalyzed={stats.totalAnalyzed}
+      />
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -100,6 +100,40 @@ export async function GET() {
       statusCounts.map(s => [s.status, s._count])
     )
 
+    // Aggregate fail reasons and success factors
+    const failReasonCounts: Record<string, number> = {}
+    const successFactorCounts: Record<string, number> = {}
+
+    completedAds.forEach(ad => {
+      if (ad.failReasons) {
+        try {
+          const reasons = JSON.parse(ad.failReasons) as string[]
+          reasons.forEach(r => {
+            failReasonCounts[r] = (failReasonCounts[r] || 0) + 1
+          })
+        } catch { /* ignore */ }
+      }
+      if (ad.successFactors) {
+        try {
+          const factors = JSON.parse(ad.successFactors) as string[]
+          factors.forEach(f => {
+            successFactorCounts[f] = (successFactorCounts[f] || 0) + 1
+          })
+        } catch { /* ignore */ }
+      }
+    })
+
+    // Sort and get top 5
+    const topFailReasons = Object.entries(failReasonCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([reason, count]) => ({ reason, count }))
+
+    const topSuccessFactors = Object.entries(successFactorCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([factor, count]) => ({ factor, count }))
+
     return NextResponse.json({
       hitRate,
       totalAnalyzed,
@@ -110,6 +144,8 @@ export async function GET() {
       adsReadyForAnalysis: analysisAds,
       trendData,
       adsByStatus,
+      topFailReasons,
+      topSuccessFactors,
     })
   } catch (error) {
     console.error('Error fetching stats:', error)

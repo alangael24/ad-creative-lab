@@ -73,6 +73,9 @@ export async function PATCH(
           visualNote: updateData.visualNote || null,
           audioResult: updateData.audioResult || null,
           audioNote: updateData.audioNote || null,
+          // Tags
+          failReasons: updateData.failReasons || null,
+          successFactors: updateData.successFactors || null,
         },
       })
     }

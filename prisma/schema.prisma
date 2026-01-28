@@ -59,6 +59,10 @@ model Ad {
   action        String?   // "iterate" | "kill" | "scale"
   closedAt      DateTime?
 
+  // === ETIQUETAS DE FALLO/ÉXITO (Para análisis cuantitativo) ===
+  failReasons      String?   // JSON array: ["bad_hook", "boring_script"]
+  successFactors   String?   // JSON array: ["high_contrast", "urgency"]
+
   // === EVALUACIÓN POR ELEMENTOS ===
   hookResult    String?   // "worked" | "failed" | null
   hookNote      String?   // El hook exacto que funciono/fallo
@@ -78,6 +82,10 @@ model Ad {
 
   // === RELACIONES ===
   learnings     Learning[]
+
+  // Conexión con Avatar (a quién le habla este ad)
+  avatarId      String?
+  avatar        Avatar?  @relation(fields: [avatarId], references: [id], onDelete: SetNull)
 }
 
 model Learning {
@@ -107,10 +115,79 @@ model Learning {
   visualNote    String?
   audioResult   String?
   audioNote     String?
+
+  // Etiquetas (copiado del ad)
+  failReasons      String?
+  successFactors   String?
 }
 
 model Settings {
   id              String  @id @default("default")
   defaultLockDays Int     @default(10)
   defaultBudget   Float   @default(50)
+}
+
+// === MÓDULO DE RESEARCH ===
+
+model Avatar {
+  id            String         @id @default(cuid())
+  name          String         // Ej: "Madres primerizas estresadas"
+  description   String?        // Descripción general del avatar
+
+  // Luchas diarias específicas (no genérico)
+  painPoints    String         // JSON array de pain points específicos
+  // Ej: ["Le da vergüenza ir a la piscina con sus hijos", "Se despierta a las 3am por ansiedad"]
+
+  // Deseos y aspiraciones
+  desires       String         // JSON array de deseos específicos
+  // Ej: ["Quiere sentirse cómoda en su cuerpo", "Quiere tener energía para jugar con sus hijos"]
+
+  // Objeciones comunes
+  objections    String?        // JSON array de objeciones
+  // Ej: ["No tengo tiempo", "Ya probé todo y nada funciona"]
+
+  // Estilo de contenido orgánico que consume
+  organicStyle  String?        // Qué tipo de contenido ve cuando NO ve ads
+  // Ej: "TikToks de chicas hablando a cámara 3min, videos de transformación, testimonios raw"
+
+  // Lenguaje que usa (para copy)
+  language      String?        // Frases, palabras, expresiones que usa este avatar
+
+  // Demografía básica (opcional)
+  ageRange      String?        // Ej: "25-40"
+  gender        String?        // Ej: "female", "male", "all"
+  location      String?        // Ej: "LATAM", "España", "US Hispanic"
+
+  // Relaciones
+  research      ResearchItem[]
+  ads           Ad[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ResearchItem {
+  id          String   @id @default(cuid())
+
+  // Fuente del hallazgo
+  source      String   // "Reddit", "TikTok Comments", "Facebook Group", "Amazon Review", "YouTube Comments", "Twitter"
+  url         String?  // URL de donde se sacó
+
+  // El contenido/quote directo
+  content     String   // Ej: "Me despierto a las 3am por sudores fríos y mi esposo ni se entera"
+
+  // Categorización
+  category    String   // "pain_point", "desire", "objection", "language", "insight"
+
+  // Contexto adicional
+  context     String?  // Contexto de dónde/cómo se encontró
+
+  // Etiquetas para búsqueda
+  tags        String?  // JSON array de tags: ["sueño", "menopausia", "relación"]
+
+  // Conexión con avatar
+  avatarId    String?
+  avatar      Avatar?  @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
 }

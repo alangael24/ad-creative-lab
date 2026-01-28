@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ACTIONS } from '@/lib/constants'
+import { ACTIONS, FAIL_REASONS, SUCCESS_FACTORS } from '@/lib/constants'
 import { calculateROAS } from '@/lib/utils'
 import { Trophy, Skull, ThumbsUp, ThumbsDown } from 'lucide-react'
 
@@ -67,6 +67,9 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
     visualNote: '',
     audioResult: '' as 'worked' | 'failed' | '',
     audioNote: '',
+    // Etiquetas de fallo/éxito
+    failReasons: [] as string[],
+    successFactors: [] as string[],
   })
 
   const calculatedROAS = calculateROAS(
@@ -123,6 +126,9 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
           visualNote: formData.visualNote || null,
           audioResult: formData.audioResult || null,
           audioNote: formData.audioNote || null,
+          // Tags
+          failReasons: formData.failReasons.length > 0 ? JSON.stringify(formData.failReasons) : null,
+          successFactors: formData.successFactors.length > 0 ? JSON.stringify(formData.successFactors) : null,
         }),
       })
 
@@ -145,6 +151,16 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+  }
+
+  const toggleTag = (field: 'failReasons' | 'successFactors', tag: string) => {
+    setFormData(prev => {
+      const current = prev[field]
+      const updated = current.includes(tag)
+        ? current.filter(t => t !== tag)
+        : [...current, tag]
+      return { ...prev, [field]: updated }
+    })
   }
 
   return (
@@ -253,6 +269,99 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
           </div>
           {errors.result && <p className="text-red-500 text-xs">{errors.result}</p>}
         </div>
+
+        {/* Success/Fail Tags */}
+        {formData.result && (
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">
+              {formData.result === 'winner' ? 'Factores de Éxito' : 'Razones del Fallo'}
+              <span className="text-muted-foreground text-xs font-normal ml-2">(selecciona todos los que apliquen)</span>
+            </Label>
+
+            {formData.result === 'loser' && (
+              <div className="flex flex-wrap gap-2">
+                {FAIL_REASONS.map((reason) => (
+                  <button
+                    key={reason.value}
+                    type="button"
+                    onClick={() => toggleTag('failReasons', reason.value)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      formData.failReasons.includes(reason.value)
+                        ? 'bg-red-500 text-white'
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50'
+                    }`}
+                  >
+                    {reason.icon} {reason.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {formData.result === 'winner' && (
+              <div className="flex flex-wrap gap-2">
+                {SUCCESS_FACTORS.map((factor) => (
+                  <button
+                    key={factor.value}
+                    type="button"
+                    onClick={() => toggleTag('successFactors', factor.value)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      formData.successFactors.includes(factor.value)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                    }`}
+                  >
+                    {factor.icon} {factor.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Also allow adding opposite tags for nuance */}
+            {formData.result === 'winner' && (
+              <div className="pt-2">
+                <p className="text-xs text-muted-foreground mb-2">¿Algo que NO funciono aunque gano?</p>
+                <div className="flex flex-wrap gap-2">
+                  {FAIL_REASONS.slice(0, 5).map((reason) => (
+                    <button
+                      key={reason.value}
+                      type="button"
+                      onClick={() => toggleTag('failReasons', reason.value)}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                        formData.failReasons.includes(reason.value)
+                          ? 'bg-red-500 text-white'
+                          : 'bg-muted text-muted-foreground hover:bg-red-100 dark:hover:bg-red-900/30'
+                      }`}
+                    >
+                      {reason.icon} {reason.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {formData.result === 'loser' && (
+              <div className="pt-2">
+                <p className="text-xs text-muted-foreground mb-2">¿Algo que SI funciono aunque perdio?</p>
+                <div className="flex flex-wrap gap-2">
+                  {SUCCESS_FACTORS.slice(0, 5).map((factor) => (
+                    <button
+                      key={factor.value}
+                      type="button"
+                      onClick={() => toggleTag('successFactors', factor.value)}
+                      className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                        formData.successFactors.includes(factor.value)
+                          ? 'bg-green-500 text-white'
+                          : 'bg-muted text-muted-foreground hover:bg-green-100 dark:hover:bg-green-900/30'
+                      }`}
+                    >
+                      {factor.icon} {factor.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Element Evaluation */}
         <div className="space-y-3">

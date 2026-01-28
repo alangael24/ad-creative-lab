@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileUpload } from '@/components/ui/file-upload'
+import { CopilotSidebar } from '@/components/ads/CopilotSidebar'
 import { ANGLES, FORMATS, FUNNEL_STAGES, SOURCE_TYPES } from '@/lib/constants'
 import { generateAdName } from '@/lib/name-generator'
 
@@ -107,11 +108,13 @@ export function AdForm() {
   }
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Nuevo Anuncio</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      {/* Main Form */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle>Nuevo Anuncio</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
         {/* Generated Name Preview */}
         {generatedName && (
           <div className="p-3 bg-muted rounded-lg">
@@ -313,5 +316,17 @@ export function AdForm() {
         </div>
       </CardContent>
     </Card>
+
+      {/* Copilot Sidebar */}
+      <div className="lg:col-span-1">
+        <div className="sticky top-6">
+          <CopilotSidebar
+            angle={formData.angle}
+            format={formData.format}
+            concept={formData.concept}
+          />
+        </div>
+      </div>
+    </div>
   )
 }

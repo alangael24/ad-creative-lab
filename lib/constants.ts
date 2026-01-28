@@ -51,6 +51,71 @@ export const LEARNING_TYPES = [
   { value: 'warning', label: 'Advertencia' },
 ] as const
 
+// Etiquetas predefinidas para análisis cuantitativo
+export const FAIL_REASONS = [
+  { value: 'bad_hook', label: 'Hook débil', icon: '🎣' },
+  { value: 'boring_script', label: 'Guion aburrido', icon: '📝' },
+  { value: 'confusing_offer', label: 'Oferta confusa', icon: '❓' },
+  { value: 'weak_cta', label: 'CTA débil', icon: '👆' },
+  { value: 'bad_avatar', label: 'Avatar incorrecto', icon: '👤' },
+  { value: 'poor_visual', label: 'Visual pobre', icon: '🎨' },
+  { value: 'wrong_audience', label: 'Audiencia incorrecta', icon: '🎯' },
+  { value: 'too_long', label: 'Demasiado largo', icon: '⏱️' },
+  { value: 'no_credibility', label: 'Falta credibilidad', icon: '🏅' },
+  { value: 'bad_audio', label: 'Audio malo', icon: '🔊' },
+] as const
+
+export const SUCCESS_FACTORS = [
+  { value: 'strong_hook', label: 'Hook potente', icon: '🎣' },
+  { value: 'urgency', label: 'Urgencia', icon: '⚡' },
+  { value: 'high_contrast', label: 'Alto contraste', icon: '🎨' },
+  { value: 'social_proof', label: 'Prueba social', icon: '👥' },
+  { value: 'clear_offer', label: 'Oferta clara', icon: '💰' },
+  { value: 'relatable_avatar', label: 'Avatar relatable', icon: '👤' },
+  { value: 'trending_audio', label: 'Audio trending', icon: '🎵' },
+  { value: 'controversy', label: 'Controversia', icon: '🔥' },
+  { value: 'storytelling', label: 'Storytelling', icon: '📖' },
+  { value: 'transformation', label: 'Transformación', icon: '✨' },
+] as const
+
+// === MÓDULO DE RESEARCH ===
+
+export const RESEARCH_SOURCES = [
+  { value: 'reddit', label: 'Reddit', icon: '🔴' },
+  { value: 'tiktok_comments', label: 'TikTok Comments', icon: '🎵' },
+  { value: 'youtube_comments', label: 'YouTube Comments', icon: '▶️' },
+  { value: 'facebook_group', label: 'Facebook Group', icon: '👥' },
+  { value: 'amazon_reviews', label: 'Amazon Reviews', icon: '📦' },
+  { value: 'twitter', label: 'Twitter/X', icon: '🐦' },
+  { value: 'quora', label: 'Quora', icon: '❓' },
+  { value: 'forum', label: 'Foro especializado', icon: '💬' },
+  { value: 'customer_support', label: 'Soporte al cliente', icon: '🎧' },
+  { value: 'survey', label: 'Encuesta propia', icon: '📋' },
+  { value: 'interview', label: 'Entrevista', icon: '🎤' },
+  { value: 'competitor_comments', label: 'Comentarios competencia', icon: '👀' },
+] as const
+
+export const RESEARCH_CATEGORIES = [
+  { value: 'pain_point', label: 'Pain Point', icon: '😫', color: 'bg-red-500', description: 'Problema o frustración específica' },
+  { value: 'desire', label: 'Deseo', icon: '✨', color: 'bg-green-500', description: 'Lo que quieren lograr' },
+  { value: 'objection', label: 'Objeción', icon: '🚫', color: 'bg-amber-500', description: 'Por qué no comprarían' },
+  { value: 'language', label: 'Lenguaje', icon: '💬', color: 'bg-blue-500', description: 'Cómo hablan del problema' },
+  { value: 'insight', label: 'Insight', icon: '💡', color: 'bg-purple-500', description: 'Observación valiosa' },
+] as const
+
+export const ORGANIC_STYLES = [
+  { value: 'talking_head', label: 'Talking head (yapping)', description: 'Persona hablando a cámara 1-3 min' },
+  { value: 'raw_tiktok', label: 'TikTok raw', description: 'Videos casuales sin mucha edición' },
+  { value: 'transformation', label: 'Transformación', description: 'Antes/después, journey' },
+  { value: 'tutorial', label: 'Tutorial/How-to', description: 'Paso a paso educativo' },
+  { value: 'storytime', label: 'Storytime', description: 'Contando una historia personal' },
+  { value: 'review', label: 'Reviews/Unboxing', description: 'Opiniones de productos' },
+  { value: 'infomercial', label: 'Infomercial', description: 'Estilo TV shopping, largo' },
+  { value: 'meme', label: 'Memes/Humor', description: 'Contenido de humor relatable' },
+  { value: 'aesthetic', label: 'Aesthetic/ASMR', description: 'Visual satisfactorio, poco texto' },
+  { value: 'news', label: 'Noticias/Trends', description: 'Contenido informativo actual' },
+] as const
+
 export type Angle = typeof ANGLES[number]['value']
 export type Format = typeof FORMATS[number]['value']
 export type FunnelStage = typeof FUNNEL_STAGES[number]['value']
