@@ -1,0 +1,61 @@
+import { AdGallery } from '@/components/library/AdGallery'
+import { prisma } from '@/lib/db'
+
+async function getCompletedAds() {
+  const ads = await prisma.ad.findMany({
+    where: { status: 'completed' },
+    orderBy: { closedAt: 'desc' },
+    include: {
+      learnings: {
+        select: {
+          id: true,
+          content: true,
+        },
+      },
+    },
+  })
+
+  return ads.map(ad => ({
+    id: ad.id,
+    name: ad.name,
+    concept: ad.concept,
+    angle: ad.angle,
+    format: ad.format,
+    hypothesis: ad.hypothesis,
+    thumbnailUrl: ad.thumbnailUrl,
+    result: ad.result,
+    diagnosis: ad.diagnosis,
+    spend: ad.spend,
+    revenue: ad.revenue,
+    learnings: ad.learnings,
+    // Element results with notes
+    hookResult: ad.hookResult,
+    hookNote: ad.hookNote,
+    avatarResult: ad.avatarResult,
+    avatarNote: ad.avatarNote,
+    scriptResult: ad.scriptResult,
+    scriptNote: ad.scriptNote,
+    ctaResult: ad.ctaResult,
+    ctaNote: ad.ctaNote,
+    visualResult: ad.visualResult,
+    visualNote: ad.visualNote,
+    audioResult: ad.audioResult,
+    audioNote: ad.audioNote,
+  }))
+}
+
+export default async function LibraryPage() {
+  const ads = await getCompletedAds()
+
+  return (
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Libreria de Aprendizajes</h1>
+        <p className="text-muted-foreground mt-1">
+          Tu cerebro creativo: todos los ads analizados y sus lecciones
+        </p>
+      </div>
+      <AdGallery ads={ads} />
+    </div>
+  )
+}

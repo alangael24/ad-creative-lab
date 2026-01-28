@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Ad {
+  id            String    @id @default(cuid())
+  name          String    // Auto-generado: FECHA_CONCEPTO_ANGULO_FORMATO
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // === NOMENCLATURA (Identificación única) ===
+  concept       String    // Mensaje central en 3-4 palabras (ej: "Ahorro de dinero")
+  angle         String    // Ángulo psicológico
+  format        String    // "static" | "video" | "ugc" | "carousel"
+  funnelStage   String    // "cold" | "retargeting"
+  product       String?   // Producto específico si vendes varios
+
+  // === MÓDULO INTENCIÓN (Obligatorio) ===
+  hypothesis    String    // "Creo que funcionará porque..."
+  sourceType    String    @default("original") // "original" | "competitor" | "iteration"
+  sourceUrl     String?   // URL si es de competencia
+  referenceMediaUrl String? // Video/imagen de referencia subido
+
+  // === ESTADO (Pipeline Kanban) ===
+  status        String    @default("idea")
+  // Estados: "idea" | "production" | "testing" | "analysis" | "completed"
+
+  // === DEADLINE ===
+  dueDate       DateTime? // Fecha limite para completar el ad
+
+  // === DESARROLLO CREATIVO ===
+  script        String?   // Guion del anuncio
+  hook          String?   // Hook principal (primeros 3 segundos)
+  cta           String?   // Call to action
+  notes         String?   // Notas adicionales de desarrollo
+
+  // === REGLA DE LOS 10 DÍAS ===
+  testingStartedAt  DateTime?  // Cuando se movió a "testing"
+  reviewDate        DateTime?  // testingStartedAt + 10 días (auto-calculado)
+  testingBudget     Float?     // Presupuesto asignado al test
+  isLocked          Boolean    @default(false) // True mientras está en testing
+  lockDays          Int        @default(10)    // Días de bloqueo configurables
+
+  // === MÉTRICAS (Ingreso manual) ===
+  spend         Float?
+  impressions   Int?
+  clicks        Int?
+  purchases     Int?
+  revenue       Float?
+
+  // === POST-MORTEM (Análisis final) ===
+  result        String?   // "winner" | "loser"
+  diagnosis     String?   // "¿Por qué ganó/perdió?"
+  action        String?   // "iterate" | "kill" | "scale"
+  closedAt      DateTime?
+
+  // === EVALUACIÓN POR ELEMENTOS ===
+  hookResult    String?   // "worked" | "failed" | null
+  hookNote      String?   // El hook exacto que funciono/fallo
+  avatarResult  String?   // "worked" | "failed" | null
+  avatarNote    String?   // Descripcion del avatar/presentador
+  scriptResult  String?   // "worked" | "failed" | null
+  scriptNote    String?   // Parte del guion que destaco
+  ctaResult     String?   // "worked" | "failed" | null
+  ctaNote       String?   // El CTA exacto
+  visualResult  String?   // "worked" | "failed" | null
+  visualNote    String?   // Que elemento visual funciono/fallo
+  audioResult   String?   // "worked" | "failed" | null
+  audioNote     String?   // Que musica/sonido uso
+
+  // === MEDIA ===
+  thumbnailUrl  String?   // URL o path de la imagen/video
+
+  // === RELACIONES ===
+  learnings     Learning[]
+}
+
+model Learning {
+  id        String   @id @default(cuid())
+  content   String   // La lección: "El fondo negro funcionó mejor"
+  type      String   @default("insight") // "insight" | "rule" | "warning"
+  createdAt DateTime @default(now())
+
+  ad        Ad?      @relation(fields: [adId], references: [id], onDelete: SetNull)
+  adId      String?
+
+  // Para búsqueda por tags
+  angle     String?  // Copiado del ad para filtrar
+  format    String?
+  result    String?  // winner/loser
+
+  // Evaluación por elementos (copiado del ad)
+  hookResult    String?
+  hookNote      String?
+  avatarResult  String?
+  avatarNote    String?
+  scriptResult  String?
+  scriptNote    String?
+  ctaResult     String?
+  ctaNote       String?
+  visualResult  String?
+  visualNote    String?
+  audioResult   String?
+  audioNote     String?
+}
+
+model Settings {
+  id              String  @id @default("default")
+  defaultLockDays Int     @default(10)
+  defaultBudget   Float   @default(50)
+}

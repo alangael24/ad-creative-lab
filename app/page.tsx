@@ -1,65 +1,233 @@
-import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { HitRateGauge } from '@/components/dashboard/HitRateGauge'
+import { MoneyInLimbo } from '@/components/dashboard/MoneyInLimbo'
+import { ActionAlerts } from '@/components/dashboard/ActionAlerts'
+import { DueDateAlerts } from '@/components/dashboard/DueDateAlerts'
+import { TrendChart } from '@/components/dashboard/TrendChart'
+import { prisma } from '@/lib/db'
 
-export default function Home() {
+async function getStats() {
+  // Get all completed ads
+  const completedAds = await prisma.ad.findMany({
+    where: { status: 'completed' },
+    orderBy: { closedAt: 'desc' },
+  })
+
+  // Calculate hit rate
+  const totalAnalyzed = completedAds.length
+  const winners = completedAds.filter(ad => ad.result === 'winner').length
+  const hitRate = totalAnalyzed > 0 ? (winners / totalAnalyzed) * 100 : 0
+
+  // Get ads in testing (for money in limbo)
+  const testingAds = await prisma.ad.findMany({
+    where: { status: 'testing' },
+  })
+  const moneyInLimbo = testingAds.reduce((sum, ad) => sum + (ad.testingBudget || 0), 0)
+
+  // Auto-move expired testing ads to analysis
+  const now = new Date()
+  await prisma.ad.updateMany({
+    where: {
+      status: 'testing',
+      reviewDate: { lte: now },
+    },
+    data: {
+      status: 'analysis',
+      isLocked: false,
+    },
+  })
+
+  // Get ads in analysis status
+  const analysisAds = await prisma.ad.findMany({
+    where: { status: 'analysis' },
+    select: {
+      id: true,
+      name: true,
+      reviewDate: true,
+    },
+  })
+
+  // Calculate trend data (hit rate by week for last 8 weeks)
+  const eightWeeksAgo = new Date()
+  eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56)
+
+  const recentAds = completedAds.filter(ad =>
+    ad.closedAt && new Date(ad.closedAt) >= eightWeeksAgo
+  )
+
+  // Group by week
+  const weeklyData: Record<string, { winners: number; total: number }> = {}
+  recentAds.forEach(ad => {
+    if (!ad.closedAt) return
+    const date = new Date(ad.closedAt)
+    const weekStart = new Date(date)
+    weekStart.setDate(date.getDate() - date.getDay())
+    const weekKey = weekStart.toISOString().split('T')[0]
+
+    if (!weeklyData[weekKey]) {
+      weeklyData[weekKey] = { winners: 0, total: 0 }
+    }
+    weeklyData[weekKey].total++
+    if (ad.result === 'winner') {
+      weeklyData[weekKey].winners++
+    }
+  })
+
+  const trendData = Object.entries(weeklyData)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([period, data]) => ({
+      period: period.slice(5), // MM-DD format
+      hitRate: data.total > 0 ? (data.winners / data.total) * 100 : 0,
+    }))
+
+  // Count ads by status
+  const statusCounts = await prisma.ad.groupBy({
+    by: ['status'],
+    _count: true,
+  })
+
+  const adsByStatus = Object.fromEntries(
+    statusCounts.map(s => [s.status, s._count])
+  )
+
+  // Get overdue ads (dueDate passed, not completed)
+  const overdueAds = await prisma.ad.findMany({
+    where: {
+      dueDate: { lt: now },
+      status: { notIn: ['completed', 'analysis'] },
+    },
+    select: {
+      id: true,
+      name: true,
+      concept: true,
+      dueDate: true,
+      status: true,
+    },
+    orderBy: { dueDate: 'asc' },
+  })
+
+  // Get ads due soon (next 3 days, not completed)
+  const threeDaysFromNow = new Date()
+  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
+
+  const dueSoonAds = await prisma.ad.findMany({
+    where: {
+      dueDate: { gte: now, lte: threeDaysFromNow },
+      status: { notIn: ['completed', 'analysis'] },
+    },
+    select: {
+      id: true,
+      name: true,
+      concept: true,
+      dueDate: true,
+      status: true,
+    },
+    orderBy: { dueDate: 'asc' },
+  })
+
+  return {
+    hitRate,
+    totalAnalyzed,
+    winners,
+    moneyInLimbo,
+    testingCount: testingAds.length,
+    adsReadyForAnalysis: analysisAds,
+    trendData,
+    adsByStatus,
+    overdueAds: overdueAds.map(ad => ({
+      ...ad,
+      dueDate: ad.dueDate!.toISOString(),
+    })),
+    dueSoonAds: dueSoonAds.map(ad => ({
+      ...ad,
+      dueDate: ad.dueDate!.toISOString(),
+    })),
+  }
+}
+
+export default async function DashboardPage() {
+  const stats = await getStats()
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Hit Rate Gauge */}
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Hit Rate</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <HitRateGauge
+              hitRate={stats.hitRate}
+              totalAds={stats.totalAnalyzed}
+              winners={stats.winners}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          </CardContent>
+        </Card>
+
+        {/* Money in Limbo & Alerts */}
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Estado Actual</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <MoneyInLimbo
+              totalBudget={stats.moneyInLimbo}
+              adsCount={stats.testingCount}
+            />
+            <DueDateAlerts
+              overdueAds={stats.overdueAds}
+              dueSoonAds={stats.dueSoonAds}
+            />
+            <ActionAlerts
+              adsReadyForAnalysis={stats.adsReadyForAnalysis.map(ad => ({
+                ...ad,
+                reviewDate: ad.reviewDate?.toISOString() || null,
+              }))}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tendencia de Hit Rate</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TrendChart data={stats.trendData} />
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Ideas</p>
+            <p className="text-2xl font-bold">{stats.adsByStatus.idea || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">En Produccion</p>
+            <p className="text-2xl font-bold">{stats.adsByStatus.production || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">En Testeo</p>
+            <p className="text-2xl font-bold">{stats.adsByStatus.testing || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Completados</p>
+            <p className="text-2xl font-bold">{stats.adsByStatus.completed || 0}</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  )
 }
