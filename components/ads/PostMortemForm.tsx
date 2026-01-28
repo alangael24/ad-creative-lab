@@ -8,8 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ACTIONS, FAIL_REASONS, SUCCESS_FACTORS } from '@/lib/constants'
-import { calculateROAS } from '@/lib/utils'
-import { Trophy, Skull, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { calculateROAS, analyzeVideoMetrics, formatPercentage } from '@/lib/utils'
+import { Trophy, Skull, ThumbsUp, ThumbsDown, AlertTriangle, CheckCircle, Video } from 'lucide-react'
 
 const ELEMENTS = [
   { key: 'hook', label: 'Hook', description: 'Primeros 3 segundos', placeholder: 'Ej: "¿Sigues pagando precio completo?" - funciono porque genera curiosidad' },
@@ -33,6 +33,8 @@ interface Ad {
   clicks: number | null
   purchases: number | null
   revenue: number | null
+  videoViewThreeSeconds: number | null
+  videoViewThruplay: number | null
 }
 
 interface PostMortemFormProps {
@@ -50,6 +52,9 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
     clicks: ad.clicks?.toString() || '',
     purchases: ad.purchases?.toString() || '',
     revenue: ad.revenue?.toString() || '',
+    // Video metrics
+    videoViewThreeSeconds: ad.videoViewThreeSeconds?.toString() || '',
+    videoViewThruplay: ad.videoViewThruplay?.toString() || '',
     result: '' as 'winner' | 'loser' | '',
     diagnosis: '',
     action: 'iterate',
@@ -76,6 +81,37 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
     parseFloat(formData.revenue) || null,
     parseFloat(formData.spend) || null
   )
+
+  // Video metrics calculation
+  const isVideoFormat = ad.format === 'video' || ad.format === 'ugc'
+  const videoMetrics = analyzeVideoMetrics(
+    parseInt(formData.impressions) || null,
+    parseInt(formData.videoViewThreeSeconds) || null,
+    parseInt(formData.videoViewThruplay) || null
+  )
+
+  // Auto-apply suggested results when video metrics change
+  const applyVideoSuggestions = () => {
+    const updates: Partial<typeof formData> = {}
+
+    if (videoMetrics.suggestedHookResult && !formData.hookResult) {
+      updates.hookResult = videoMetrics.suggestedHookResult
+      if (videoMetrics.suggestedHookResult === 'failed') {
+        updates.hookNote = `Hook Rate: ${formatPercentage(videoMetrics.hookRate)} (< 20% = hook debil)`
+      }
+    }
+
+    if (videoMetrics.suggestedScriptResult && !formData.scriptResult) {
+      updates.scriptResult = videoMetrics.suggestedScriptResult
+      if (videoMetrics.suggestedScriptResult === 'failed') {
+        updates.scriptNote = `Hold Rate: ${formatPercentage(videoMetrics.holdRate)} (< 15% = guion aburrido)`
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setFormData(prev => ({ ...prev, ...updates }))
+    }
+  }
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -107,6 +143,8 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
           clicks: parseInt(formData.clicks) || null,
           purchases: parseInt(formData.purchases) || null,
           revenue: parseFloat(formData.revenue) || null,
+          videoViewThreeSeconds: parseInt(formData.videoViewThreeSeconds) || null,
+          videoViewThruplay: parseInt(formData.videoViewThruplay) || null,
           result: formData.result,
           diagnosis: formData.diagnosis,
           action: formData.action,
@@ -243,6 +281,105 @@ export function PostMortemForm({ ad }: PostMortemFormProps) {
             </div>
           </div>
         </div>
+
+        {/* Video Metrics - Only show for video/ugc formats */}
+        {isVideoFormat && (
+          <div className="space-y-3">
+            <Label className="text-base font-semibold flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Metricas de Video
+              <span className="text-xs text-muted-foreground font-normal">(para diagnostico automatico)</span>
+            </Label>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="videoViewThreeSeconds" className="text-xs">Vistas 3 seg</Label>
+                <Input
+                  id="videoViewThreeSeconds"
+                  type="number"
+                  placeholder="Ej: 5000"
+                  value={formData.videoViewThreeSeconds}
+                  onChange={(e) => handleChange('videoViewThreeSeconds', e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="videoViewThruplay" className="text-xs">Thruplays (completas)</Label>
+                <Input
+                  id="videoViewThruplay"
+                  type="number"
+                  placeholder="Ej: 800"
+                  value={formData.videoViewThruplay}
+                  onChange={(e) => handleChange('videoViewThruplay', e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Calculated Rates Display */}
+            {(videoMetrics.hookRate !== null || videoMetrics.holdRate !== null) && (
+              <div className="grid grid-cols-2 gap-3">
+                {/* Hook Rate */}
+                <div className={`p-3 rounded-lg border ${
+                  videoMetrics.hookRateStatus === 'failed'
+                    ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800'
+                    : videoMetrics.hookRateStatus === 'warning'
+                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800'
+                    : videoMetrics.hookRateStatus === 'good'
+                    ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800'
+                    : 'bg-muted border-transparent'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium">Hook Rate</span>
+                    {videoMetrics.hookRateStatus === 'failed' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                    {videoMetrics.hookRateStatus === 'good' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                  </div>
+                  <p className="text-lg font-bold">{formatPercentage(videoMetrics.hookRate)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {videoMetrics.hookRateStatus === 'failed' && '< 20% = Hook debil'}
+                    {videoMetrics.hookRateStatus === 'warning' && '20-30% = Mejorable'}
+                    {videoMetrics.hookRateStatus === 'good' && '> 30% = Hook fuerte'}
+                  </p>
+                </div>
+
+                {/* Hold Rate */}
+                <div className={`p-3 rounded-lg border ${
+                  videoMetrics.holdRateStatus === 'failed'
+                    ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800'
+                    : videoMetrics.holdRateStatus === 'warning'
+                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800'
+                    : videoMetrics.holdRateStatus === 'good'
+                    ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800'
+                    : 'bg-muted border-transparent'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium">Hold Rate</span>
+                    {videoMetrics.holdRateStatus === 'failed' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+                    {videoMetrics.holdRateStatus === 'good' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                  </div>
+                  <p className="text-lg font-bold">{formatPercentage(videoMetrics.holdRate)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {videoMetrics.holdRateStatus === 'failed' && '< 15% = Guion aburrido'}
+                    {videoMetrics.holdRateStatus === 'warning' && '15-25% = Mejorable'}
+                    {videoMetrics.holdRateStatus === 'good' && '> 25% = Guion retiene'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Auto-apply suggestions button */}
+            {(videoMetrics.suggestedHookResult || videoMetrics.suggestedScriptResult) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={applyVideoSuggestions}
+                className="w-full"
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Aplicar diagnostico automatico basado en metricas
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Result Selection */}
         <div className="space-y-3">

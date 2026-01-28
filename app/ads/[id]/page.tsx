@@ -63,6 +63,8 @@ export default async function AdDetailPage({
             clicks: ad.clicks,
             purchases: ad.purchases,
             revenue: ad.revenue,
+            videoViewThreeSeconds: ad.videoViewThreeSeconds,
+            videoViewThruplay: ad.videoViewThruplay,
           }}
         />
       </div>

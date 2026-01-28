@@ -53,6 +53,12 @@ model Ad {
   purchases     Int?
   revenue       Float?
 
+  // === MÉTRICAS DE VIDEO ===
+  videoViewThreeSeconds  Int?    // Vistas de 3 segundos
+  videoViewThruplay      Int?    // Vistas completas (o 15 seg si video > 15 seg)
+  // Hook Rate = videoViewThreeSeconds / impressions (< 20% = hook malo)
+  // Hold Rate = videoViewThruplay / videoViewThreeSeconds (guion aburrido si bajo)
+
   // === POST-MORTEM (Análisis final) ===
   result        String?   // "winner" | "loser"
   diagnosis     String?   // "¿Por qué ganó/perdió?"
