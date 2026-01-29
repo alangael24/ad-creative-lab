@@ -24,7 +24,7 @@ export function MultiFileUpload({
   onUploadComplete,
   accept = "video/mp4,video/webm,video/quicktime,image/jpeg,image/png,image/gif,image/webp",
   maxSize = 100,
-  maxFiles = 20,
+  maxFiles = 100,
 }: MultiFileUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -189,7 +189,7 @@ export function MultiFileUpload({
             )}
           </div>
 
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+          <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1.5">
             {files.map((fileData) => (
               <div
                 key={fileData.id}
