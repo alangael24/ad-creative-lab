@@ -352,7 +352,7 @@ export function CompetitorAdGallery({ competitorId, competitorName, ads: initial
                 </p>
                 <MultiFileUpload
                   onUploadComplete={handleBulkUpload}
-                  maxFiles={20}
+                  maxFiles={100}
                   maxSize={100}
                 />
               </div>
