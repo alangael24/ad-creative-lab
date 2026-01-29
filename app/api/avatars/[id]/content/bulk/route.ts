@@ -14,6 +14,8 @@ export async function POST(
         mediaUrl: string
         mediaType: string
         thumbnailUrl?: string
+        platform?: string
+        sourceUrl?: string
       }>
     }
 
@@ -39,10 +41,10 @@ export async function POST(
             mediaUrl: item.mediaUrl,
             mediaType: item.mediaType || 'video',
             thumbnailUrl: item.thumbnailUrl || null,
-            // All other fields null - to be edited later
+            platform: item.platform || null,
+            sourceUrl: item.sourceUrl || null,
+            // Other fields null - to be edited later
             title: null,
-            sourceUrl: null,
-            platform: null,
             creator: null,
             style: null,
             duration: null,
