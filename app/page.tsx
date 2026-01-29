@@ -19,13 +19,7 @@ async function getStats() {
   const winners = completedAds.filter(ad => ad.result === 'winner').length
   const hitRate = totalAnalyzed > 0 ? (winners / totalAnalyzed) * 100 : 0
 
-  // Get ads in testing (for money in limbo)
-  const testingAds = await prisma.ad.findMany({
-    where: { status: 'testing' },
-  })
-  const moneyInLimbo = testingAds.reduce((sum, ad) => sum + (ad.testingBudget || 0), 0)
-
-  // Auto-move expired testing ads to analysis
+  // Auto-move expired testing ads to analysis FIRST (before calculating stats)
   const now = new Date()
   await prisma.ad.updateMany({
     where: {
@@ -37,6 +31,12 @@ async function getStats() {
       isLocked: false,
     },
   })
+
+  // Get ads in testing AFTER auto-move (for accurate money in limbo)
+  const testingAds = await prisma.ad.findMany({
+    where: { status: 'testing' },
+  })
+  const moneyInLimbo = testingAds.reduce((sum, ad) => sum + (ad.testingBudget || 0), 0)
 
   // Get ads in analysis status
   const analysisAds = await prisma.ad.findMany({

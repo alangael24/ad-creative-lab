@@ -13,6 +13,7 @@ import { CopilotSidebar } from '@/components/ads/CopilotSidebar'
 import { ResearchSidebar } from '@/components/ads/ResearchSidebar'
 import { ANGLES, FORMATS, FUNNEL_STAGES, SOURCE_TYPES } from '@/lib/constants'
 import { generateAdName } from '@/lib/name-generator'
+import { getLocalDateString } from '@/lib/utils'
 
 export function AdForm() {
   const router = useRouter()
@@ -276,7 +277,7 @@ export function AdForm() {
               type="date"
               value={formData.dueDate}
               onChange={(e) => handleChange('dueDate', e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+              min={getLocalDateString()}
             />
             <p className="text-xs text-muted-foreground">
               Ponte una fecha para forzarte a completarlo

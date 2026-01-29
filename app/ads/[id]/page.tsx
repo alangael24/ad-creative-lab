@@ -241,23 +241,23 @@ export default async function AdDetailPage({
             )}
 
             {/* Metrics (if available) */}
-            {(ad.spend || ad.revenue) && (
+            {(ad.spend !== null || ad.revenue !== null) && (
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Metricas</p>
                 <div className="grid grid-cols-3 gap-4">
-                  {ad.spend && (
+                  {ad.spend !== null && ad.spend !== undefined && (
                     <div className="bg-muted p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground">Gasto</p>
                       <p className="font-medium">{formatCurrency(ad.spend)}</p>
                     </div>
                   )}
-                  {ad.revenue && (
+                  {ad.revenue !== null && ad.revenue !== undefined && (
                     <div className="bg-muted p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground">Revenue</p>
                       <p className="font-medium">{formatCurrency(ad.revenue)}</p>
                     </div>
                   )}
-                  {roas && (
+                  {roas !== null && (
                     <div className="bg-muted p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground">ROAS</p>
                       <p className={`font-medium ${roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>

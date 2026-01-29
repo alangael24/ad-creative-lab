@@ -34,13 +34,15 @@ export async function GET(request: NextRequest) {
     })
 
     // Get element-level insights (hooks, scripts, etc that worked or failed)
+    // Build OR conditions only for provided filters
+    const orConditions = []
+    if (angle) orConditions.push({ angle })
+    if (format) orConditions.push({ format })
+
     const elementInsights = await prisma.ad.findMany({
       where: {
         status: 'completed',
-        OR: [
-          { angle: angle || undefined },
-          { format: format || undefined },
-        ],
+        ...(orConditions.length > 0 ? { OR: orConditions } : {}),
       },
       select: {
         id: true,

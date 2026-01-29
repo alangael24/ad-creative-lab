@@ -200,16 +200,16 @@ export function VersusView({ ads }: VersusViewProps) {
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-muted p-2 rounded">
               <p className="text-xs text-muted-foreground">Gasto</p>
-              <p className="font-medium">{ad.spend ? formatCurrency(ad.spend) : '-'}</p>
+              <p className="font-medium">{ad.spend !== null && ad.spend !== undefined ? formatCurrency(ad.spend) : '-'}</p>
             </div>
             <div className="bg-muted p-2 rounded">
               <p className="text-xs text-muted-foreground">Revenue</p>
-              <p className="font-medium">{ad.revenue ? formatCurrency(ad.revenue) : '-'}</p>
+              <p className="font-medium">{ad.revenue !== null && ad.revenue !== undefined ? formatCurrency(ad.revenue) : '-'}</p>
             </div>
             <div className="bg-muted p-2 rounded">
               <p className="text-xs text-muted-foreground">ROAS</p>
-              <p className={`font-medium ${roas && roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>
-                {roas ? `${roas.toFixed(2)}x` : '-'}
+              <p className={`font-medium ${roas !== null && roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>
+                {roas !== null ? `${roas.toFixed(2)}x` : '-'}
               </p>
             </div>
           </div>

@@ -10,6 +10,17 @@ export function formatDate(date: Date | string): string {
   return d.toISOString().split('T')[0]
 }
 
+/**
+ * Returns today's date in YYYY-MM-DD format using local timezone
+ * Use this for date inputs to avoid UTC timezone issues
+ */
+export function getLocalDateString(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
@@ -18,7 +29,7 @@ export function formatCurrency(amount: number): string {
 }
 
 export function calculateROAS(revenue: number | null, spend: number | null): number | null {
-  if (!revenue || !spend || spend === 0) return null
+  if (revenue === null || revenue === undefined || spend === null || spend === undefined || spend === 0) return null
   return revenue / spend
 }
 
@@ -57,7 +68,8 @@ export function calculateHookRate(
   videoViewThreeSeconds: number | null,
   impressions: number | null
 ): number | null {
-  if (!videoViewThreeSeconds || !impressions || impressions === 0) return null
+  if (videoViewThreeSeconds === null || videoViewThreeSeconds === undefined) return null
+  if (impressions === null || impressions === undefined || impressions === 0) return null
   return (videoViewThreeSeconds / impressions) * 100
 }
 
@@ -71,7 +83,8 @@ export function calculateHoldRate(
   videoViewThruplay: number | null,
   videoViewThreeSeconds: number | null
 ): number | null {
-  if (!videoViewThruplay || !videoViewThreeSeconds || videoViewThreeSeconds === 0) return null
+  if (videoViewThruplay === null || videoViewThruplay === undefined) return null
+  if (videoViewThreeSeconds === null || videoViewThreeSeconds === undefined || videoViewThreeSeconds === 0) return null
   return (videoViewThruplay / videoViewThreeSeconds) * 100
 }
 

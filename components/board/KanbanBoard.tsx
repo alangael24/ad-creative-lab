@@ -140,13 +140,16 @@ export function KanbanBoard({ initialAds }: KanbanBoardProps) {
       return
     }
 
-    // Optimistic update
-    const previousAds = [...ads]
-    setAds(ads.map(a =>
-      a.id === adId
-        ? { ...a, status: targetStatus, isLocked: targetStatus === 'testing' }
-        : a
-    ))
+    // Optimistic update - use functional setState to avoid stale state
+    let previousAds: typeof ads = []
+    setAds(prevAds => {
+      previousAds = prevAds
+      return prevAds.map(a =>
+        a.id === adId
+          ? { ...a, status: targetStatus, isLocked: targetStatus === 'testing' }
+          : a
+      )
+    })
 
     try {
       const response = await fetch(`/api/ads/${adId}/move`, {
@@ -161,7 +164,7 @@ export function KanbanBoard({ initialAds }: KanbanBoardProps) {
       }
 
       const updatedAd = await response.json()
-      setAds(ads.map(a => a.id === adId ? updatedAd : a))
+      setAds(prevAds => prevAds.map(a => a.id === adId ? updatedAd : a))
       router.refresh()
     } catch (err) {
       // Rollback on error

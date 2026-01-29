@@ -173,19 +173,19 @@ export function LearningCard({ ad }: LearningCardProps) {
             )}
 
             {/* Metrics */}
-            {(ad.spend || ad.revenue) && (
+            {(ad.spend !== null || ad.revenue !== null) && (
               <div className="flex gap-4 text-sm">
-                {ad.spend && (
+                {ad.spend !== null && ad.spend !== undefined && (
                   <span>
                     <span className="text-muted-foreground">Gasto:</span> {formatCurrency(ad.spend)}
                   </span>
                 )}
-                {ad.revenue && (
+                {ad.revenue !== null && ad.revenue !== undefined && (
                   <span>
                     <span className="text-muted-foreground">Revenue:</span> {formatCurrency(ad.revenue)}
                   </span>
                 )}
-                {roas && (
+                {roas !== null && (
                   <span className={roas >= 1 ? 'text-green-600' : 'text-red-600'}>
                     <span className="text-muted-foreground">ROAS:</span> {roas.toFixed(2)}x
                   </span>
