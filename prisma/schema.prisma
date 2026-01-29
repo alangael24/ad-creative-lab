@@ -167,9 +167,41 @@ model Avatar {
   // Relaciones
   research      ResearchItem[]
   ads           Ad[]
+  nativeContent AvatarContent[]  // Contenido que este avatar consume
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+// Contenido nativo que consume el avatar (para hacer ads nativos)
+model AvatarContent {
+  id          String   @id @default(cuid())
+
+  // Media
+  mediaUrl    String   // URL del video/imagen guardado
+  mediaType   String   @default("video") // "video" | "image"
+  thumbnailUrl String? // Thumbnail para preview
+
+  // Información del contenido
+  title       String?  // Título descriptivo
+  sourceUrl   String?  // URL original (TikTok, YouTube, etc.)
+  platform    String?  // "tiktok" | "youtube" | "instagram" | "reels"
+  creator     String?  // @handle del creador original
+
+  // Análisis del estilo
+  style       String?  // Estilo del contenido: "talking_head", "vlog", "tutorial", etc.
+  duration    String?  // Duración aproximada
+  whatWorks   String?  // ¿Por qué este avatar consume este contenido?
+  notes       String?  // Notas adicionales
+
+  // Tags para filtrar
+  tags        String?  // JSON array: ["relatable", "funny", "emotional"]
+
+  // Conexión con avatar
+  avatarId    String
+  avatar      Avatar   @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
 }
 
 model ResearchItem {

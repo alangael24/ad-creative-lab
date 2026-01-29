@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { AvatarDetail } from '@/components/research/AvatarDetail'
 import { ResearchList } from '@/components/research/ResearchList'
+import { AvatarContentGallery } from '@/components/avatars/AvatarContentGallery'
 import { prisma } from '@/lib/db'
 import { ArrowLeft, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,10 @@ async function getAvatar(id: string) {
           result: true,
           thumbnailUrl: true,
         },
+      },
+      nativeContent: {
+        orderBy: { createdAt: 'desc' },
+        take: 4,
       },
     },
   })
@@ -74,6 +79,14 @@ export default async function AvatarDetailPage({
             items={avatar.research}
           />
         </div>
+      </div>
+
+      {/* Native Content Section - Full Width */}
+      <div className="mt-8 pt-8 border-t">
+        <AvatarContentGallery
+          avatarId={avatar.id}
+          avatarName={avatar.name}
+        />
       </div>
     </div>
   )
