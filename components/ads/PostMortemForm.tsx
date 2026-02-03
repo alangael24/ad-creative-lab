@@ -24,7 +24,7 @@ interface Ad {
   id: string
   name: string
   concept: string
-  angle: string
+  angleType: string
   format: string
   hypothesis: string
   thumbnailUrl: string | null

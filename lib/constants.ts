@@ -7,6 +7,16 @@ export const ANGLES = [
   { value: 'testimonial', label: 'Testimonio', color: 'bg-yellow-500' },
 ] as const
 
+export const AWARENESS_LEVELS = [
+  { value: 'unaware', label: 'No consciente', description: 'No sabe que tiene el problema' },
+  { value: 'problem_aware', label: 'Consciente del problema', description: 'Sabe que tiene el problema' },
+  { value: 'solution_aware', label: 'Consciente de soluciones', description: 'Sabe que hay soluciones' },
+  { value: 'product_aware', label: 'Consciente del producto', description: 'Conoce tu producto' },
+  { value: 'most_aware', label: 'Muy consciente', description: 'Listo para comprar' },
+] as const
+
+export type AwarenessLevel = typeof AWARENESS_LEVELS[number]['value']
+
 export const FORMATS = [
   { value: 'static', label: 'Estático' },
   { value: 'video', label: 'Video' },

@@ -8,9 +8,9 @@ function sanitize(str: string): string {
     .slice(0, 20)
 }
 
-function getAngleLabel(angle: Angle): string {
-  const found = ANGLES.find(a => a.value === angle)
-  return found ? found.label : angle
+function getAngleLabel(angleType: Angle): string {
+  const found = ANGLES.find(a => a.value === angleType)
+  return found ? found.label : angleType
 }
 
 function getFormatLabel(format: Format): string {
@@ -19,13 +19,13 @@ function getFormatLabel(format: Format): string {
 
 export function generateAdName(
   concept: string,
-  angle: Angle,
+  angleType: Angle,
   format: Format,
   date?: Date
 ): string {
   const dateStr = formatDate(date || new Date())
   const conceptClean = sanitize(concept)
-  const angleLabel = sanitize(getAngleLabel(angle))
+  const angleLabel = sanitize(getAngleLabel(angleType))
   const formatLabel = getFormatLabel(format)
 
   return `${dateStr}_${conceptClean}_${angleLabel}_${formatLabel}`

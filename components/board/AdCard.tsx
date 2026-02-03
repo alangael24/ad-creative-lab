@@ -13,7 +13,7 @@ interface Ad {
   id: string
   name: string
   concept: string
-  angle: string
+  angleType: string
   format: string
   status: string
   isLocked: boolean
@@ -48,7 +48,7 @@ export function AdCard({ ad, isDragging }: AdCardProps) {
   }
 
   const daysRemaining = getDaysRemaining(ad.reviewDate)
-  const angleConfig = ANGLES.find(a => a.value === ad.angle)
+  const angleConfig = ANGLES.find(a => a.value === ad.angleType)
 
   // Calculate due date status
   const getDueDateStatus = () => {
@@ -156,8 +156,8 @@ export function AdCard({ ad, isDragging }: AdCardProps) {
         </h4>
 
         <div className="flex flex-wrap gap-1 mb-2">
-          <Badge variant={ad.angle as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'} className="text-xs">
-            {angleConfig?.label || ad.angle}
+          <Badge variant={ad.angleType as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'} className="text-xs">
+            {angleConfig?.label || ad.angleType}
           </Badge>
           <Badge variant="secondary" className="text-xs">
             {ad.format}

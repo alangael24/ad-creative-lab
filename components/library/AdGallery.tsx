@@ -8,7 +8,7 @@ interface Ad {
   id: string
   name: string
   concept: string
-  angle: string
+  angleType: string
   format: string
   hypothesis: string
   thumbnailUrl: string | null
@@ -50,7 +50,7 @@ export function AdGallery({ ads }: AdGalleryProps) {
       if (resultFilter && ad.result !== resultFilter) return false
 
       // Angle filter
-      if (angleFilter && ad.angle !== angleFilter) return false
+      if (angleFilter && ad.angleType !== angleFilter) return false
 
       // Format filter
       if (formatFilter && ad.format !== formatFilter) return false

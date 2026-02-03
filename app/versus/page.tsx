@@ -11,7 +11,7 @@ async function getCompletedAds() {
     id: ad.id,
     name: ad.name,
     concept: ad.concept,
-    angle: ad.angle,
+    angleType: ad.angleType,
     format: ad.format,
     hypothesis: ad.hypothesis,
     thumbnailUrl: ad.thumbnailUrl,

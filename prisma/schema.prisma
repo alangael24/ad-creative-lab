@@ -15,7 +15,9 @@ model Ad {
 
   // === NOMENCLATURA (Identificación única) ===
   concept       String    // Mensaje central en 3-4 palabras (ej: "Ahorro de dinero")
-  angle         String    // Ángulo psicológico
+  angleType     String    @default("fear")    // fear, desire, curiosity, offer, tutorial, testimonial
+  angleDetail   String?                        // Texto del research (opcional)
+  awareness     String    @default("unaware") // unaware, problem_aware, solution_aware, product_aware, most_aware
   format        String    // "static" | "video" | "ugc" | "carousel"
   funnelStage   String    // "cold" | "retargeting"
   product       String?   // Producto específico si vendes varios
@@ -92,6 +94,10 @@ model Ad {
   // Conexión con Avatar (a quién le habla este ad)
   avatarId      String?
   avatar        Avatar?  @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+
+  // Conexión con Sub-Avatar (momento/estado específico)
+  subAvatarId   String?
+  subAvatar     SubAvatar? @relation(fields: [subAvatarId], references: [id], onDelete: SetNull)
 }
 
 model Learning {
@@ -104,9 +110,11 @@ model Learning {
   adId      String?
 
   // Para búsqueda por tags
-  angle     String?  // Copiado del ad para filtrar
-  format    String?
-  result    String?  // winner/loser
+  angleType     String?  // Copiado del ad para filtrar
+  angleDetail   String?
+  awareness     String?
+  format        String?
+  result        String?  // winner/loser
 
   // Evaluación por elementos (copiado del ad)
   hookResult    String?
@@ -168,9 +176,37 @@ model Avatar {
   research      ResearchItem[]
   ads           Ad[]
   nativeContent AvatarContent[]  // Contenido que este avatar consume
+  subAvatars    SubAvatar[]      // Clusters de momento/estado
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+// Sub-Avatar: Cluster de momento/estado (pain + deseo + trigger + objeción + awareness)
+// La voz es la misma (Avatar) pero cambia el motor
+model SubAvatar {
+  id          String   @id @default(cuid())
+  name        String   // Ej: "Después del pediatra", "Lunes por la mañana"
+
+  // El cluster que define el momento/estado
+  painPoint   String   // El dolor específico en este momento
+  desire      String   // Lo que quiere lograr
+  trigger     String?  // "Hoy pasó Z" - el detonante
+  objection   String?  // La objeción principal en este estado
+  awareness   String   @default("unaware") // Nivel de conciencia
+
+  // Notas adicionales
+  notes       String?  // Contexto o notas sobre este sub-avatar
+
+  // Conexión con Avatar padre
+  avatarId    String
+  avatar      Avatar   @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+
+  // Ads que usan este sub-avatar
+  ads         Ad[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // Contenido nativo que consume el avatar (para hacer ads nativos)

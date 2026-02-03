@@ -30,13 +30,13 @@ async function getReportData() {
 
   // Stats by angle
   const angleStats = completedAds.reduce((acc, ad) => {
-    if (!acc[ad.angle]) {
-      acc[ad.angle] = { total: 0, winners: 0, totalSpend: 0, totalRevenue: 0 }
+    if (!acc[ad.angleType]) {
+      acc[ad.angleType] = { total: 0, winners: 0, totalSpend: 0, totalRevenue: 0 }
     }
-    acc[ad.angle].total++
-    if (ad.result === 'winner') acc[ad.angle].winners++
-    if (ad.spend) acc[ad.angle].totalSpend += ad.spend
-    if (ad.revenue) acc[ad.angle].totalRevenue += ad.revenue
+    acc[ad.angleType].total++
+    if (ad.result === 'winner') acc[ad.angleType].winners++
+    if (ad.spend) acc[ad.angleType].totalSpend += ad.spend
+    if (ad.revenue) acc[ad.angleType].totalRevenue += ad.revenue
     return acc
   }, {} as Record<string, { total: number; winners: number; totalSpend: number; totalRevenue: number }>)
 
@@ -77,7 +77,7 @@ async function getReportData() {
   // Recent learnings
   const recentLearnings = learnings.slice(0, 10).map(l => ({
     content: l.content,
-    angle: l.angle,
+    angleType: l.angleType,
     format: l.format,
     result: l.result,
   }))
@@ -86,7 +86,7 @@ async function getReportData() {
   const pendingAnalysis = allAds.filter(ad => ad.status === 'analysis').map(ad => ({
     name: ad.name,
     concept: ad.concept,
-    angle: ad.angle,
+    angleType: ad.angleType,
     format: ad.format,
   }))
 
@@ -114,7 +114,7 @@ async function getReportData() {
     sampleAds: allAds.slice(0, 10).map(ad => ({
       name: ad.name,
       concept: ad.concept,
-      angle: ad.angle,
+      angleType: ad.angleType,
       format: ad.format,
       status: ad.status,
       result: ad.result,

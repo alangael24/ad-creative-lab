@@ -11,7 +11,7 @@ interface Ad {
   id: string
   name: string
   concept: string
-  angle: string
+  angleType: string
   format: string
   hypothesis: string
   thumbnailUrl: string | null
@@ -41,7 +41,7 @@ interface LearningCardProps {
 
 export function LearningCard({ ad }: LearningCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const angleConfig = ANGLES.find(a => a.value === ad.angle)
+  const angleConfig = ANGLES.find(a => a.value === ad.angleType)
   const formatConfig = FORMATS.find(f => f.value === ad.format)
   const roas = calculateROAS(ad.revenue, ad.spend)
 
@@ -80,8 +80,8 @@ export function LearningCard({ ad }: LearningCardProps) {
               <Badge variant={ad.result as 'winner' | 'loser'}>
                 {ad.result === 'winner' ? 'Winner' : 'Loser'}
               </Badge>
-              <Badge variant={ad.angle as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
-                {angleConfig?.label || ad.angle}
+              <Badge variant={ad.angleType as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
+                {angleConfig?.label || ad.angleType}
               </Badge>
               <Badge variant="secondary">{formatConfig?.label || ad.format}</Badge>
             </div>

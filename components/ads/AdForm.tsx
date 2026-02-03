@@ -11,10 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FileUpload } from '@/components/ui/file-upload'
 import { CopilotSidebar } from '@/components/ads/CopilotSidebar'
-import { FORMATS, FUNNEL_STAGES, SOURCE_TYPES } from '@/lib/constants'
+import { ANGLES, AWARENESS_LEVELS, FORMATS, FUNNEL_STAGES, SOURCE_TYPES } from '@/lib/constants'
 import { generateAdName } from '@/lib/name-generator'
 import { getLocalDateString } from '@/lib/utils'
-import { Target, Sparkles, Ban, Search, ChevronDown, ChevronUp } from 'lucide-react'
+import { Target, Sparkles, Ban, Search, ChevronDown, ChevronUp, Brain, Zap } from 'lucide-react'
 
 interface AvatarResearch {
   id: string
@@ -23,6 +23,16 @@ interface AvatarResearch {
   desires: string[]
   objections: string[]
   language: string | null
+}
+
+interface SubAvatar {
+  id: string
+  name: string
+  painPoint: string
+  desire: string
+  trigger: string | null
+  objection: string | null
+  awareness: string
 }
 
 export function AdForm() {
@@ -43,7 +53,9 @@ export function AdForm() {
   const [formData, setFormData] = useState({
     concept: '',
     hypothesis: '',
-    angle: '', // Now free text from research
+    angleType: 'fear',
+    angleDetail: '',
+    awareness: 'unaware',
     format: 'static',
     funnelStage: 'cold',
     product: '',
@@ -54,7 +66,12 @@ export function AdForm() {
     thumbnailUrl: '',
     dueDate: '',
     avatarId: '',
+    subAvatarId: '',
   })
+
+  const [selectedAvatarId, setSelectedAvatarId] = useState('')
+  const [subAvatars, setSubAvatars] = useState<SubAvatar[]>([])
+  const [selectedSubAvatarId, setSelectedSubAvatarId] = useState('')
 
   // Fetch all avatars with their research data
   useEffect(() => {
@@ -87,33 +104,84 @@ export function AdForm() {
     fetchAvatarsResearch()
   }, [])
 
+  // Fetch sub-avatars when avatar is selected
+  useEffect(() => {
+    if (selectedAvatarId) {
+      const fetchSubAvatars = async () => {
+        try {
+          const response = await fetch(`/api/avatars/${selectedAvatarId}/sub-avatars`)
+          if (response.ok) {
+            const data = await response.json()
+            setSubAvatars(data)
+          }
+        } catch (error) {
+          console.error('Error fetching sub-avatars:', error)
+        }
+      }
+      fetchSubAvatars()
+    } else {
+      setSubAvatars([])
+      setSelectedSubAvatarId('')
+    }
+  }, [selectedAvatarId])
+
+  // Handle sub-avatar selection - auto-fill angleDetail and awareness
+  const handleSubAvatarSelect = (subAvatarId: string) => {
+    setSelectedSubAvatarId(subAvatarId)
+
+    if (subAvatarId) {
+      const subAvatar = subAvatars.find(s => s.id === subAvatarId)
+      if (subAvatar) {
+        // Build angleDetail from the cluster
+        const parts: string[] = []
+        parts.push(`Pain: ${subAvatar.painPoint}`)
+        parts.push(`Deseo: ${subAvatar.desire}`)
+        if (subAvatar.trigger) parts.push(`Trigger: ${subAvatar.trigger}`)
+        if (subAvatar.objection) parts.push(`Objeción: ${subAvatar.objection}`)
+
+        setFormData(prev => ({
+          ...prev,
+          angleDetail: parts.join(' | '),
+          awareness: subAvatar.awareness,
+          subAvatarId: subAvatarId,
+        }))
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        subAvatarId: '',
+      }))
+    }
+  }
+
   const [generatedName, setGeneratedName] = useState('')
 
-  // Generate name based on concept and format (angle is now free text)
+  // Generate name based on concept and format
   useEffect(() => {
     if (formData.concept && formData.format) {
-      // Use first 2-3 words of angle or "custom" if angle is set
-      const angleShort = formData.angle
-        ? formData.angle.split(' ').slice(0, 2).join('_').toLowerCase().replace(/[^a-z0-9_]/g, '')
-        : 'idea'
       const name = generateAdName(
         formData.concept,
-        angleShort as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial',
+        formData.angleType as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial',
         formData.format as 'static' | 'video' | 'ugc' | 'carousel'
       )
       setGeneratedName(name)
     } else {
       setGeneratedName('')
     }
-  }, [formData.concept, formData.angle, formData.format])
+  }, [formData.concept, formData.angleType, formData.format])
 
-  // Get all unique pain points, desires, objections across avatars
+  // Get all unique pain points, desires, objections across avatars (filtered by selected avatar)
   const getAllResearchItems = () => {
     const painPoints: Array<{ text: string; avatars: string[] }> = []
     const desires: Array<{ text: string; avatars: string[] }> = []
     const objections: Array<{ text: string; avatars: string[] }> = []
 
-    avatarsResearch.forEach(avatar => {
+    // Filter by selected avatar if one is chosen
+    const filteredAvatars = selectedAvatarId
+      ? avatarsResearch.filter(a => a.id === selectedAvatarId)
+      : avatarsResearch
+
+    filteredAvatars.forEach(avatar => {
       avatar.painPoints.forEach(point => {
         const existing = painPoints.find(p => p.text.toLowerCase() === point.toLowerCase())
         if (existing) {
@@ -153,8 +221,13 @@ export function AdForm() {
 
   const researchItems = getAllResearchItems()
 
-  const handleUseAsAngle = (text: string) => {
-    setFormData(prev => ({ ...prev, angle: text }))
+  const handleUseAsAngle = (text: string, type: 'pain' | 'desire' | 'objection') => {
+    const angleTypeMap: Record<string, string> = { pain: 'fear', desire: 'desire', objection: 'curiosity' }
+    setFormData(prev => ({
+      ...prev,
+      angleType: angleTypeMap[type] || prev.angleType,
+      angleDetail: text
+    }))
   }
 
   const handleAddToHypothesis = (text: string) => {
@@ -175,13 +248,9 @@ export function AdForm() {
       newErrors.concept = 'El concepto es obligatorio'
     }
 
-    if (!formData.hypothesis.trim()) {
-      newErrors.hypothesis = 'La hipotesis es obligatoria'
-    }
-
-    // For production, hypothesis is strictly required
-    if (targetStatus === 'production' && !formData.hypothesis.trim()) {
-      newErrors.hypothesis = 'La hipotesis es obligatoria para mover a produccion'
+    // Only require hypothesis for non-ideas
+    if (targetStatus !== 'idea' && !formData.hypothesis.trim()) {
+      newErrors.hypothesis = 'La hipotesis es obligatoria para produccion'
     }
 
     setErrors(newErrors)
@@ -236,6 +305,89 @@ export function AdForm() {
           <CardTitle>Nuevo Anuncio</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+        {/* Avatar Selector */}
+        <div className="space-y-2">
+          <Label htmlFor="avatar">
+            Avatar <span className="text-muted-foreground text-xs">(filtra el research por avatar)</span>
+          </Label>
+          <Select
+            id="avatar"
+            options={[
+              { value: '', label: 'Todos los avatars' },
+              ...avatarsResearch.map(a => ({ value: a.id, label: a.name }))
+            ]}
+            value={selectedAvatarId}
+            onChange={(e) => {
+              setSelectedAvatarId(e.target.value)
+              setSelectedSubAvatarId('')
+              handleChange('avatarId', e.target.value)
+            }}
+          />
+        </div>
+
+        {/* Sub-Avatar Selector (shows when avatar is selected and has sub-avatars) */}
+        {selectedAvatarId && subAvatars.length > 0 && (
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-purple-500" />
+              Sub-Avatar <span className="text-muted-foreground text-xs">(momento/estado)</span>
+            </Label>
+            <div className="grid grid-cols-1 gap-2">
+              {subAvatars.map((subAvatar) => {
+                const isSelected = selectedSubAvatarId === subAvatar.id
+                const awarenessLabel = AWARENESS_LEVELS.find(a => a.value === subAvatar.awareness)?.label
+
+                return (
+                  <div
+                    key={subAvatar.id}
+                    onClick={() => handleSubAvatarSelect(isSelected ? '' : subAvatar.id)}
+                    className={`
+                      p-3 rounded-lg border-2 cursor-pointer transition-all
+                      ${isSelected
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/30'
+                        : 'border-muted hover:border-purple-300 dark:hover:border-purple-700'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-sm">{subAvatar.name}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {awarenessLabel}
+                          </Badge>
+                        </div>
+                        <div className="text-xs space-y-0.5">
+                          <p className="text-red-600 dark:text-red-400 truncate">
+                            <Target className="h-3 w-3 inline mr-1" />
+                            {subAvatar.painPoint}
+                          </p>
+                          <p className="text-amber-600 dark:text-amber-400 truncate">
+                            <Sparkles className="h-3 w-3 inline mr-1" />
+                            {subAvatar.desire}
+                          </p>
+                          {subAvatar.trigger && (
+                            <p className="text-yellow-600 dark:text-yellow-400 truncate">
+                              <Zap className="h-3 w-3 inline mr-1" />
+                              {subAvatar.trigger}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="text-purple-500 ml-2">✓</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Selecciona un sub-avatar para auto-llenar el detalle del ángulo y nivel de conciencia
+            </p>
+          </div>
+        )}
+
         {/* Generated Name Preview */}
         {generatedName && (
           <div className="p-3 bg-muted rounded-lg">
@@ -259,10 +411,48 @@ export function AdForm() {
           {errors.concept && <p className="text-red-500 text-xs">{errors.concept}</p>}
         </div>
 
+        {/* Angle Type + Awareness (2 columns) */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="angleType">Tipo de Angulo*</Label>
+            <Select
+              id="angleType"
+              options={ANGLES}
+              value={formData.angleType}
+              onChange={(e) => handleChange('angleType', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="awareness">Nivel de Conciencia*</Label>
+            <Select
+              id="awareness"
+              options={AWARENESS_LEVELS}
+              value={formData.awareness}
+              onChange={(e) => handleChange('awareness', e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Angle Detail (optional) */}
+        <div className="space-y-2">
+          <Label htmlFor="angleDetail">
+            Detalle del Angulo <span className="text-muted-foreground text-xs">(opcional - del research)</span>
+          </Label>
+          <Input
+            id="angleDetail"
+            placeholder="Ej: Miedo a no poder jugar con sus hijos por falta de energía"
+            value={formData.angleDetail}
+            onChange={(e) => handleChange('angleDetail', e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Tip: Selecciona un pain point o deseo del panel de Research para usarlo como detalle
+          </p>
+        </div>
+
         {/* Hypothesis */}
         <div className="space-y-2">
           <Label htmlFor="hypothesis">
-            Hipotesis* <span className="text-muted-foreground text-xs">(Por que funcionara?)</span>
+            Hipotesis <span className="text-muted-foreground text-xs">(obligatoria para produccion)</span>
           </Label>
           <Textarea
             id="hypothesis"
@@ -273,23 +463,6 @@ export function AdForm() {
             rows={3}
           />
           {errors.hypothesis && <p className="text-red-500 text-xs">{errors.hypothesis}</p>}
-        </div>
-
-        {/* Angle - Now from Research */}
-        <div className="space-y-2">
-          <Label htmlFor="angle">
-            Angulo* <span className="text-muted-foreground text-xs">(selecciona del research o escribe)</span>
-          </Label>
-          <Input
-            id="angle"
-            placeholder="Ej: Miedo a no poder jugar con sus hijos por falta de energía"
-            value={formData.angle}
-            onChange={(e) => handleChange('angle', e.target.value)}
-            className={errors.angle ? 'border-red-500' : ''}
-          />
-          <p className="text-xs text-muted-foreground">
-            Tip: Selecciona un pain point o deseo del panel de Research para usarlo como ángulo
-          </p>
         </div>
 
         {/* Format */}
@@ -526,7 +699,7 @@ export function AdForm() {
                                   key={i}
                                   text={item.text}
                                   avatars={item.avatars}
-                                  onUseAsAngle={() => handleUseAsAngle(item.text)}
+                                  onUseAsAngle={() => handleUseAsAngle(item.text, 'pain')}
                                   onAddToHypothesis={() => handleAddToHypothesis(item.text)}
                                   type="pain"
                                 />
@@ -565,7 +738,7 @@ export function AdForm() {
                                   key={i}
                                   text={item.text}
                                   avatars={item.avatars}
-                                  onUseAsAngle={() => handleUseAsAngle(item.text)}
+                                  onUseAsAngle={() => handleUseAsAngle(item.text, 'desire')}
                                   onAddToHypothesis={() => handleAddToHypothesis(item.text)}
                                   type="desire"
                                 />
@@ -604,7 +777,7 @@ export function AdForm() {
                                   key={i}
                                   text={item.text}
                                   avatars={item.avatars}
-                                  onUseAsAngle={() => handleUseAsAngle(item.text)}
+                                  onUseAsAngle={() => handleUseAsAngle(item.text, 'objection')}
                                   onAddToHypothesis={() => handleAddToHypothesis(item.text)}
                                   type="objection"
                                 />
@@ -619,7 +792,9 @@ export function AdForm() {
               </Card>
             ) : (
               <CopilotSidebar
-                angle={formData.angle}
+                angleType={formData.angleType}
+                awareness={formData.awareness}
+                avatarId={selectedAvatarId}
                 format={formData.format}
                 concept={formData.concept}
               />

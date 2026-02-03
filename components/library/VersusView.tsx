@@ -18,7 +18,7 @@ interface Ad {
   id: string
   name: string
   concept: string
-  angle: string
+  angleType: string
   format: string
   hypothesis: string
   thumbnailUrl: string | null
@@ -64,13 +64,13 @@ export function VersusView({ ads }: VersusViewProps) {
     ads.filter(ad => ad.result === 'loser'),
   [ads])
 
-  // Find matching pairs based on angle and format
+  // Find matching pairs based on angleType and format
   const matchingPairs = useMemo(() => {
     const pairs: Array<{ winner: Ad; loser: Ad }> = []
 
     winners.forEach(winner => {
       const matchingLoser = losers.find(loser =>
-        loser.angle === winner.angle &&
+        loser.angleType === winner.angleType &&
         loser.format === winner.format &&
         loser.id !== winner.id
       )
@@ -85,7 +85,7 @@ export function VersusView({ ads }: VersusViewProps) {
   // Filter pairs
   const filteredPairs = useMemo(() => {
     return matchingPairs.filter(pair => {
-      if (angleFilter && pair.winner.angle !== angleFilter) return false
+      if (angleFilter && pair.winner.angleType !== angleFilter) return false
       if (formatFilter && pair.winner.format !== formatFilter) return false
       return true
     })
@@ -122,7 +122,7 @@ export function VersusView({ ads }: VersusViewProps) {
           content: `[VS] ${insight}`,
           type: 'insight',
           adId: selectedWinner.id,
-          angle: selectedWinner.angle,
+          angleType: selectedWinner.angleType,
           format: selectedWinner.format,
           result: 'winner',
         }),
@@ -139,7 +139,7 @@ export function VersusView({ ads }: VersusViewProps) {
   }
 
   const renderAdCard = (ad: Ad, type: 'winner' | 'loser') => {
-    const angleConfig = ANGLES.find(a => a.value === ad.angle)
+    const angleConfig = ANGLES.find(a => a.value === ad.angleType)
     const formatConfig = FORMATS.find(f => f.value === ad.format)
     const roas = calculateROAS(ad.revenue, ad.spend)
 
@@ -189,7 +189,7 @@ export function VersusView({ ads }: VersusViewProps) {
             <h3 className="font-semibold">{ad.concept}</h3>
             <p className="text-xs text-muted-foreground font-mono">{ad.name}</p>
             <div className="flex gap-2 mt-2">
-              <Badge variant={ad.angle as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
+              <Badge variant={ad.angleType as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
                 {angleConfig?.label}
               </Badge>
               <Badge variant="secondary">{formatConfig?.label}</Badge>
@@ -334,8 +334,8 @@ export function VersusView({ ads }: VersusViewProps) {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Badge variant={pair.winner.angle as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
-                      {ANGLES.find(a => a.value === pair.winner.angle)?.label}
+                    <Badge variant={pair.winner.angleType as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
+                      {ANGLES.find(a => a.value === pair.winner.angleType)?.label}
                     </Badge>
                     <Badge variant="secondary" className="ml-2">
                       {FORMATS.find(f => f.value === pair.winner.format)?.label}

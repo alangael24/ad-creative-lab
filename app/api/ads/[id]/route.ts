@@ -57,7 +57,9 @@ export async function PATCH(
           content: updateData.diagnosis,
           type: 'insight',
           adId: id,
-          angle: ad.angle,
+          angleType: ad.angleType,
+          angleDetail: ad.angleDetail,
+          awareness: ad.awareness,
           format: ad.format,
           result: updateData.result,
           // Copy element evaluations with notes

@@ -4,14 +4,16 @@ import { prisma } from '@/lib/db'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const angle = searchParams.get('angle')
+    const angleType = searchParams.get('angleType')
+    const awareness = searchParams.get('awareness')
     const format = searchParams.get('format')
     // concept is available for future use in similarity matching
     const _concept = searchParams.get('concept')
 
     // Build where clause based on provided filters
     const where: Record<string, unknown> = {}
-    if (angle) where.angle = angle
+    if (angleType) where.angleType = angleType
+    if (awareness) where.awareness = awareness
     if (format) where.format = format
 
     // Get learnings that match the criteria
@@ -36,7 +38,7 @@ export async function GET(request: NextRequest) {
     // Get element-level insights (hooks, scripts, etc that worked or failed)
     // Build OR conditions only for provided filters
     const orConditions = []
-    if (angle) orConditions.push({ angle })
+    if (angleType) orConditions.push({ angleType })
     if (format) orConditions.push({ format })
 
     const elementInsights = await prisma.ad.findMany({
@@ -135,7 +137,7 @@ export async function GET(request: NextRequest) {
       },
       meta: {
         totalAdsAnalyzed: elementInsights.length,
-        filterApplied: { angle, format },
+        filterApplied: { angleType, awareness, format },
       },
     })
   } catch (error) {

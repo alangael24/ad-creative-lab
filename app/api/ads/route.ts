@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
       name,
       concept,
       hypothesis,
-      angle,
+      angleType,
+      angleDetail,
+      awareness,
       format,
       funnelStage,
       product,
@@ -36,6 +38,7 @@ export async function POST(request: NextRequest) {
       thumbnailUrl,
       dueDate,
       avatarId,
+      subAvatarId,
     } = body
 
     // Validation
@@ -43,24 +46,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El concepto es obligatorio' }, { status: 400 })
     }
 
-    if (!hypothesis?.trim()) {
-      return NextResponse.json({ error: 'La hipotesis es obligatoria' }, { status: 400 })
-    }
-
-    // If creating in production, hypothesis is strictly required
-    if (status === 'production' && !hypothesis?.trim()) {
-      return NextResponse.json(
-        { error: 'La hipotesis es obligatoria para crear en produccion' },
-        { status: 400 }
-      )
+    // Hypothesis only required for non-ideas
+    if (status !== 'idea' && !hypothesis?.trim()) {
+      return NextResponse.json({ error: 'La hipotesis es obligatoria para produccion' }, { status: 400 })
     }
 
     const ad = await prisma.ad.create({
       data: {
         name: name || `${new Date().toISOString().split('T')[0]}_${concept}`,
         concept,
-        hypothesis,
-        angle: angle || 'fear',
+        hypothesis: hypothesis || '',
+        angleType: angleType || 'fear',
+        angleDetail: angleDetail || null,
+        awareness: awareness || 'unaware',
         format: format || 'static',
         funnelStage: funnelStage || 'cold',
         product: product || null,
@@ -72,6 +70,7 @@ export async function POST(request: NextRequest) {
         thumbnailUrl: thumbnailUrl || null,
         dueDate: dueDate ? new Date(dueDate) : null,
         avatarId: avatarId || null,
+        subAvatarId: subAvatarId || null,
       },
     })
 

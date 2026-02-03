@@ -4,12 +4,12 @@ import { prisma } from '@/lib/db'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const angle = searchParams.get('angle')
+    const angleType = searchParams.get('angleType')
     const format = searchParams.get('format')
     const result = searchParams.get('result')
 
     const where: Record<string, string> = {}
-    if (angle) where.angle = angle
+    if (angleType) where.angleType = angleType
     if (format) where.format = format
     if (result) where.result = result
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { content, type, adId, angle, format, result } = body
+    const { content, type, adId, angleType, format, result } = body
 
     if (!content?.trim()) {
       return NextResponse.json({ error: 'El contenido es obligatorio' }, { status: 400 })
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         content,
         type: type || 'insight',
         adId: adId || null,
-        angle: angle || null,
+        angleType: angleType || null,
         format: format || null,
         result: result || null,
       },

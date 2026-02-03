@@ -34,22 +34,24 @@ interface Suggestions {
   }
   meta: {
     totalAdsAnalyzed: number
-    filterApplied: { angle: string | null; format: string | null }
+    filterApplied: { angleType: string | null; awareness: string | null; format: string | null }
   }
 }
 
 interface CopilotSidebarProps {
-  angle: string
+  angleType: string
+  awareness: string
+  avatarId: string
   format: string
   concept: string
 }
 
-export function CopilotSidebar({ angle, format, concept }: CopilotSidebarProps) {
+export function CopilotSidebar({ angleType, awareness, avatarId, format, concept }: CopilotSidebarProps) {
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (!angle && !format) {
+    if (!angleType && !format) {
       setSuggestions(null)
       return
     }
@@ -58,7 +60,8 @@ export function CopilotSidebar({ angle, format, concept }: CopilotSidebarProps) 
       setIsLoading(true)
       try {
         const params = new URLSearchParams()
-        if (angle) params.set('angle', angle)
+        if (angleType) params.set('angleType', angleType)
+        if (awareness) params.set('awareness', awareness)
         if (format) params.set('format', format)
         if (concept) params.set('concept', concept)
 
@@ -77,9 +80,9 @@ export function CopilotSidebar({ angle, format, concept }: CopilotSidebarProps) 
     // Debounce the fetch
     const timer = setTimeout(fetchSuggestions, 300)
     return () => clearTimeout(timer)
-  }, [angle, format, concept])
+  }, [angleType, awareness, format, concept])
 
-  if (!angle && !format) {
+  if (!angleType && !format) {
     return (
       <Card className="bg-muted/30">
         <CardContent className="p-4 text-center text-muted-foreground">

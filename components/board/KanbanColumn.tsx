@@ -12,7 +12,7 @@ interface Ad {
   id: string
   name: string
   concept: string
-  angle: string
+  angleType: string
   format: string
   status: string
   isLocked: boolean

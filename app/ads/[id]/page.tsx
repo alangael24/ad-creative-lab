@@ -32,7 +32,7 @@ export default async function AdDetailPage({
     notFound()
   }
 
-  const angleConfig = ANGLES.find(a => a.value === ad.angle)
+  const angleConfig = ANGLES.find(a => a.value === ad.angleType)
   const formatConfig = FORMATS.find(f => f.value === ad.format)
   const statusConfig = STATUSES.find(s => s.value === ad.status)
   const roas = calculateROAS(ad.revenue, ad.spend)
@@ -54,7 +54,7 @@ export default async function AdDetailPage({
             id: ad.id,
             name: ad.name,
             concept: ad.concept,
-            angle: ad.angle,
+            angleType: ad.angleType,
             format: ad.format,
             hypothesis: ad.hypothesis,
             thumbnailUrl: ad.thumbnailUrl,
@@ -151,8 +151,8 @@ export default async function AdDetailPage({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Angulo</p>
-                <Badge variant={ad.angle as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
-                  {angleConfig?.label || ad.angle}
+                <Badge variant={ad.angleType as 'fear' | 'desire' | 'curiosity' | 'offer' | 'tutorial' | 'testimonial'}>
+                  {angleConfig?.label || ad.angleType}
                 </Badge>
               </div>
               <div>

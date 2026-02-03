@@ -30,7 +30,7 @@ async function getAds() {
     id: ad.id,
     name: ad.name,
     concept: ad.concept,
-    angle: ad.angle,
+    angleType: ad.angleType,
     format: ad.format,
     status: ad.status,
     isLocked: ad.isLocked,

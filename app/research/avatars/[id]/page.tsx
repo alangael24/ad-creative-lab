@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { AvatarDetail } from '@/components/research/AvatarDetail'
 import { ResearchList } from '@/components/research/ResearchList'
+import { SubAvatarManager } from '@/components/research/SubAvatarManager'
 import { AvatarContentGallery } from '@/components/avatars/AvatarContentGallery'
 import { prisma } from '@/lib/db'
 import { ArrowLeft, Edit } from 'lucide-react'
@@ -67,8 +68,14 @@ export default async function AvatarDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Avatar Details - Left Column */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-6">
           <AvatarDetail avatar={avatar} />
+
+          {/* Sub-Avatars Section */}
+          <SubAvatarManager
+            avatarId={avatar.id}
+            avatarName={avatar.name}
+          />
         </div>
 
         {/* Research Items - Right Column */}
