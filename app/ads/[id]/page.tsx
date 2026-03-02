@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { PostMortemForm } from '@/components/ads/PostMortemForm'
 import { DevelopmentForm } from '@/components/ads/DevelopmentForm'
+import { DailyMetricsLog } from '@/components/ads/DailyMetricsLog'
 import { DeleteAdButton } from '@/components/ads/DeleteAdButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -49,6 +50,7 @@ export default async function AdDetailPage({
           </Link>
           <DeleteAdButton adId={ad.id} adName={ad.concept} />
         </div>
+        <DailyMetricsLog adId={ad.id} />
         <PostMortemForm
           ad={{
             id: ad.id,
@@ -135,6 +137,11 @@ export default async function AdDetailPage({
                   </p>
                 )}
               </div>
+            )}
+
+            {/* Daily Metrics (testing) */}
+            {ad.status === 'testing' && (
+              <DailyMetricsLog adId={ad.id} />
             )}
 
             {/* Due Date */}

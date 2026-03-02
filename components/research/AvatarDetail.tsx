@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ORGANIC_STYLES } from '@/lib/constants'
-import { User, Target, Sparkles, Ban, Tv, MessageSquare, FileText } from 'lucide-react'
+import { User, Target, Sparkles, Ban, Tv, MessageSquare, FileText, PenLine } from 'lucide-react'
 import Link from 'next/link'
 
 interface Avatar {
@@ -53,15 +53,26 @@ export function AvatarDetail({ avatar }: AvatarDetailProps) {
 
   const organicStyleConfig = ORGANIC_STYLES.find(s => s.value === avatar.organicStyle)
 
+  // Un avatar es borrador si no tiene pain points o desires
+  const isDraft = painPoints.length === 0 || desires.length === 0
+
   return (
     <div className="space-y-4">
       {/* Header Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            {avatar.name}
-          </CardTitle>
+          <div className="flex items-start justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              {avatar.name}
+            </CardTitle>
+            {isDraft && (
+              <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400">
+                <PenLine className="h-3 w-3 mr-1" />
+                Borrador
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {avatar.description && (
@@ -92,14 +103,20 @@ export function AvatarDetail({ avatar }: AvatarDetailProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-3">
-          <ul className="space-y-2">
-            {painPoints.map((point, i) => (
-              <li key={i} className="text-sm flex items-start gap-2">
-                <span className="text-red-500 mt-1">•</span>
-                {point}
-              </li>
-            ))}
-          </ul>
+          {painPoints.length > 0 ? (
+            <ul className="space-y-2">
+              {painPoints.map((point, i) => (
+                <li key={i} className="text-sm flex items-start gap-2">
+                  <span className="text-red-500 mt-1">•</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-amber-600 dark:text-amber-400 italic">
+              Pendiente de definir
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -112,14 +129,20 @@ export function AvatarDetail({ avatar }: AvatarDetailProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-3">
-          <ul className="space-y-2">
-            {desires.map((desire, i) => (
-              <li key={i} className="text-sm flex items-start gap-2">
-                <span className="text-green-500 mt-1">•</span>
-                {desire}
-              </li>
-            ))}
-          </ul>
+          {desires.length > 0 ? (
+            <ul className="space-y-2">
+              {desires.map((desire, i) => (
+                <li key={i} className="text-sm flex items-start gap-2">
+                  <span className="text-green-500 mt-1">•</span>
+                  {desire}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-amber-600 dark:text-amber-400 italic">
+              Pendiente de definir
+            </p>
+          )}
         </CardContent>
       </Card>
 

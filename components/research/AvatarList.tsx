@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { User, FileText, Tv, MessageSquare, Target } from 'lucide-react'
+import { User, FileText, Tv, MessageSquare, Target, PenLine } from 'lucide-react'
 
 interface Avatar {
   id: string
@@ -57,6 +57,9 @@ export function AvatarList({ avatars }: AvatarListProps) {
           desiresArray = JSON.parse(avatar.desires) as string[]
         } catch { /* ignore */ }
 
+        // Un avatar es borrador si no tiene pain points o desires
+        const isDraft = painPointsArray.length === 0 || desiresArray.length === 0
+
         return (
           <Link key={avatar.id} href={`/research/avatars/${avatar.id}`}>
             <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
@@ -67,6 +70,12 @@ export function AvatarList({ avatars }: AvatarListProps) {
                     {avatar.name}
                   </CardTitle>
                   <div className="flex gap-1">
+                    {isDraft && (
+                      <Badge variant="outline" className="text-xs border-amber-500 text-amber-600 dark:text-amber-400">
+                        <PenLine className="h-3 w-3 mr-1" />
+                        Borrador
+                      </Badge>
+                    )}
                     {avatar.ageRange && (
                       <Badge variant="secondary" className="text-xs">
                         {avatar.ageRange}
@@ -88,7 +97,7 @@ export function AvatarList({ avatars }: AvatarListProps) {
                 )}
 
                 {/* Pain Points Preview */}
-                {painPointsArray.length > 0 && (
+                {painPointsArray.length > 0 ? (
                   <div>
                     <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1 flex items-center gap-1">
                       <Target className="h-3 w-3" />
@@ -98,10 +107,14 @@ export function AvatarList({ avatars }: AvatarListProps) {
                       {painPointsArray[0]}
                     </p>
                   </div>
+                ) : (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+                    Sin pain points definidos
+                  </p>
                 )}
 
                 {/* Desires Preview */}
-                {desiresArray.length > 0 && (
+                {desiresArray.length > 0 ? (
                   <div>
                     <p className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1 flex items-center gap-1">
                       <Target className="h-3 w-3" />
@@ -111,6 +124,10 @@ export function AvatarList({ avatars }: AvatarListProps) {
                       {desiresArray[0]}
                     </p>
                   </div>
+                ) : (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+                    Sin deseos definidos
+                  </p>
                 )}
 
                 {/* Organic Style */}

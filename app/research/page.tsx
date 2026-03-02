@@ -2,7 +2,7 @@ import { AvatarList } from '@/components/research/AvatarList'
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, FileText, Radar, Chrome } from 'lucide-react'
 
 async function getAvatars() {
   const avatars = await prisma.avatar.findMany({
@@ -33,10 +33,16 @@ async function getResearchStats() {
     by: ['category'],
     _count: true,
   })
+  const insightsCount = await prisma.insight.count()
+  const scoutSessionsCount = await prisma.scoutSession.count()
+  const tiktokSessionsCount = await prisma.tikTokScanSession.count()
 
   return {
     totalItems,
     byCategory: Object.fromEntries(byCategory.map(c => [c.category, c._count])),
+    insightsCount,
+    scoutSessionsCount,
+    tiktokSessionsCount,
   }
 }
 
@@ -62,7 +68,7 @@ export default async function ResearchPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
         <div className="bg-card border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Avatars</p>
           <p className="text-2xl font-bold">{avatars.length}</p>
@@ -83,6 +89,27 @@ export default async function ResearchPage() {
           <p className="text-sm text-blue-600 dark:text-blue-400">Lenguaje</p>
           <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.byCategory.language || 0}</p>
         </div>
+        <Link href="/research/insights" className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 hover:border-purple-400 transition-colors">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-purple-500" />
+            <p className="text-sm text-purple-600 dark:text-purple-400">Insights</p>
+          </div>
+          <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{stats.insightsCount}</p>
+        </Link>
+        <Link href="/research/scout" className="bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4 hover:border-cyan-400 transition-colors">
+          <div className="flex items-center gap-2">
+            <Radar className="h-4 w-4 text-cyan-500" />
+            <p className="text-sm text-cyan-600 dark:text-cyan-400">Scout</p>
+          </div>
+          <p className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">{stats.scoutSessionsCount}</p>
+        </Link>
+        <Link href="/research/tiktok" className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4 hover:border-orange-400 transition-colors">
+          <div className="flex items-center gap-2">
+            <Chrome className="h-4 w-4 text-orange-500" />
+            <p className="text-sm text-orange-600 dark:text-orange-400">TikTok</p>
+          </div>
+          <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{stats.tiktokSessionsCount}</p>
+        </Link>
       </div>
 
       <AvatarList avatars={avatars} />

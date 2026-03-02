@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -90,6 +90,7 @@ model Ad {
 
   // === RELACIONES ===
   learnings     Learning[]
+  dailyMetrics  DailyMetric[]
 
   // Conexión con Avatar (a quién le habla este ad)
   avatarId      String?
@@ -177,6 +178,11 @@ model Avatar {
   ads           Ad[]
   nativeContent AvatarContent[]  // Contenido que este avatar consume
   subAvatars    SubAvatar[]      // Clusters de momento/estado
+  insights      InsightAvatar[]  // Insights vinculados
+  scoutSessions ScoutSession[]   // Sesiones de TikTok Scout
+  tiktokSessions TikTokScanSession[]
+  tiktokComments TikTokComment[]
+  tiktokVideos   TikTokVideo[]
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -266,6 +272,35 @@ model ResearchItem {
   createdAt   DateTime @default(now())
 }
 
+// === MÓDULO DE INSIGHTS (Lienzo libre) ===
+
+model Insight {
+  id          String   @id @default(cuid())
+  title       String   // Título del documento
+  content     String   @default("") // Contenido en JSON (Tiptap)
+
+  // Vinculación opcional con avatars
+  avatars     InsightAvatar[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Tabla de relación muchos a muchos entre Insight y Avatar
+model InsightAvatar {
+  id        String   @id @default(cuid())
+
+  insightId String
+  insight   Insight  @relation(fields: [insightId], references: [id], onDelete: Cascade)
+
+  avatarId  String
+  avatar    Avatar   @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([insightId, avatarId])
+}
+
 // === MÓDULO DE COMPETIDORES (Swipe File) ===
 
 model Competitor {
@@ -313,4 +348,139 @@ model CompetitorAd {
   competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
+}
+
+// === MÓDULO DE TIKTOK SCOUT ===
+
+model ScoutSession {
+  id            String         @id @default(cuid())
+  status        String         @default("running") // "running" | "completed" | "failed"
+  query         String         // Qué se buscó
+  context       String?        // Contexto adicional del usuario
+  totalFindings Int            @default(0)
+
+  // Conexión con Avatar
+  avatarId      String
+  avatar        Avatar         @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+
+  // Hallazgos de esta sesión
+  findings      ScoutFinding[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ScoutFinding {
+  id              String   @id @default(cuid())
+  type            String   // "video" | "comment" | "trend" | "creator"
+  content         String   // Texto/descripción del hallazgo
+  sourceUrl       String?  // URL de TikTok
+  creator         String?  // @handle del creador
+  engagement      String?  // JSON: { likes, comments, shares, views }
+  relevance       String   @default("medium") // "high" | "medium" | "low"
+  relevanceReason String   // Por qué es relevante para el avatar
+  category        String   // "pain_point" | "desire" | "objection" | "language" | "trend" | "content_idea"
+  thumbnailUrl    String?
+  savedToResearch Boolean  @default(false)
+
+  // Conexión con sesión
+  sessionId       String
+  session         ScoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+}
+
+// === MÓDULO DE TIKTOK CHROME SCRAPING ===
+
+model TikTokScanSession {
+  id          String   @id @default(cuid())
+  avatarId    String?
+  avatar      Avatar?  @relation(fields: [avatarId], references: [id])
+  query       String?
+  scanType    String   // comments, feed, search, profile
+  sourceUrl   String
+  status      String   @default("pending") // pending, scanning, classifying, completed, failed
+  totalItems  Int      @default(0)
+  summary     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  comments    TikTokComment[]
+  videos      TikTokVideo[]
+}
+
+model TikTokComment {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         TikTokScanSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  videoUrl        String?
+  username        String
+  commentText     String
+  likes           Int      @default(0)
+  timestamp       String?
+  replyTo         String?  // parent comment username if it's a reply
+
+  // AI classification
+  category        String?  // pain_point, desire, objection, language, neutral
+  sentiment       String?  // positive, negative, neutral
+  relevanceScore  Int?     // 0-100
+
+  // Research integration
+  savedToResearch Boolean  @default(false)
+  avatarId        String?
+  avatar          Avatar?  @relation(fields: [avatarId], references: [id])
+
+  createdAt       DateTime @default(now())
+}
+
+model TikTokVideo {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         TikTokScanSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  videoUrl        String
+  description     String?
+  hashtags        String?  // JSON array
+  creator         String?
+  views           Int?
+  likes           Int?
+  shares          Int?
+  commentsCount   Int?
+  thumbnailUrl    String?
+  musicTitle      String?
+
+  // AI classification
+  category        String?  // pain_point, desire, objection, language, trend, content_idea
+  relevanceScore  Int?
+
+  // Research integration
+  savedToResearch Boolean  @default(false)
+  avatarId        String?
+  avatar          Avatar?  @relation(fields: [avatarId], references: [id])
+
+  createdAt       DateTime @default(now())
+}
+
+// === MÓDULO DE SEGUIMIENTO DE RENDIMIENTO ===
+
+model DailyMetric {
+  id        String   @id @default(cuid())
+  date      DateTime // Día calendario de esta entrada
+
+  spend                  Float  @default(0)
+  impressions            Int    @default(0)
+  clicks                 Int    @default(0)
+  purchases              Int    @default(0)
+  revenue                Float  @default(0)
+  videoViewThreeSeconds  Int    @default(0)
+  videoViewThruplay      Int    @default(0)
+
+  adId      String
+  ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([adId, date])
+  @@index([date])
+  @@index([adId])
 }

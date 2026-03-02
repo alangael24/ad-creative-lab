@@ -47,6 +47,23 @@ export function isLockExpired(reviewDate: Date | string | null): boolean {
   return new Date(reviewDate) <= new Date()
 }
 
+// === COST METRICS ===
+
+export function calculateCPA(spend: number | null, purchases: number | null): number | null {
+  if (spend === null || spend === undefined || purchases === null || purchases === undefined || purchases === 0) return null
+  return spend / purchases
+}
+
+export function calculateCPM(spend: number | null, impressions: number | null): number | null {
+  if (spend === null || spend === undefined || impressions === null || impressions === undefined || impressions === 0) return null
+  return (spend / impressions) * 1000
+}
+
+export function calculateCTR(clicks: number | null, impressions: number | null): number | null {
+  if (clicks === null || clicks === undefined || impressions === null || impressions === undefined || impressions === 0) return null
+  return (clicks / impressions) * 100
+}
+
 // === VIDEO METRICS ===
 
 export interface VideoMetrics {

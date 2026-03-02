@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Kanban, BookOpen, Plus, Sparkles, Swords, Users, Eye, UserCircle } from 'lucide-react'
+import { LayoutDashboard, Kanban, BookOpen, Plus, Sparkles, Swords, Users, Eye, UserCircle, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/avatars', label: 'Avatares', icon: UserCircle },
   { href: '/research', label: 'Research', icon: Users },
   { href: '/competitors', label: 'Competidores', icon: Eye },
+  { href: '/performance', label: 'Rendimiento', icon: TrendingUp },
   { href: '/reports', label: 'Reportes IA', icon: Sparkles },
 ]
 

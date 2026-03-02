@@ -32,8 +32,8 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Parse JSON arrays from avatar
-  const initialPainPoints = avatar?.painPoints ? JSON.parse(avatar.painPoints) as string[] : ['']
-  const initialDesires = avatar?.desires ? JSON.parse(avatar.desires) as string[] : ['']
+  const initialPainPoints = avatar?.painPoints ? JSON.parse(avatar.painPoints) as string[] : []
+  const initialDesires = avatar?.desires ? JSON.parse(avatar.desires) as string[] : []
   const initialObjections = avatar?.objections ? JSON.parse(avatar.objections) as string[] : []
 
   const [formData, setFormData] = useState({
@@ -55,14 +55,10 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
   const addObjection = () => setObjections([...objections, ''])
 
   const removePainPoint = (index: number) => {
-    if (painPoints.length > 1) {
-      setPainPoints(painPoints.filter((_, i) => i !== index))
-    }
+    setPainPoints(painPoints.filter((_, i) => i !== index))
   }
   const removeDesire = (index: number) => {
-    if (desires.length > 1) {
-      setDesires(desires.filter((_, i) => i !== index))
-    }
+    setDesires(desires.filter((_, i) => i !== index))
   }
   const removeObjection = (index: number) => {
     setObjections(objections.filter((_, i) => i !== index))
@@ -91,15 +87,7 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
       newErrors.name = 'El nombre es obligatorio'
     }
 
-    const filledPainPoints = painPoints.filter(p => p.trim())
-    if (filledPainPoints.length === 0) {
-      newErrors.painPoints = 'Agrega al menos un pain point específico'
-    }
-
-    const filledDesires = desires.filter(d => d.trim())
-    if (filledDesires.length === 0) {
-      newErrors.desires = 'Agrega al menos un deseo específico'
-    }
+    // Pain points y desires ya no son obligatorios - permite guardar borradores
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -217,7 +205,7 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
         <CardHeader className="bg-red-50 dark:bg-red-950/30">
           <CardTitle className="text-lg flex items-center gap-2 text-red-700 dark:text-red-400">
             <Target className="h-5 w-5" />
-            Luchas Diarias (Pain Points)*
+            Luchas Diarias (Pain Points)
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-3">
@@ -233,19 +221,16 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
                 rows={2}
                 className="flex-1"
               />
-              {painPoints.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removePainPoint(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removePainPoint(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ))}
-          {errors.painPoints && <p className="text-red-500 text-xs">{errors.painPoints}</p>}
           <Button type="button" variant="outline" size="sm" onClick={addPainPoint}>
             <Plus className="h-4 w-4 mr-1" />
             Agregar Pain Point
@@ -258,7 +243,7 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
         <CardHeader className="bg-green-50 dark:bg-green-950/30">
           <CardTitle className="text-lg flex items-center gap-2 text-green-700 dark:text-green-400">
             <Sparkles className="h-5 w-5" />
-            Deseos y Aspiraciones*
+            Deseos y Aspiraciones
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-3">
@@ -274,19 +259,16 @@ export function AvatarForm({ avatar }: AvatarFormProps) {
                 rows={2}
                 className="flex-1"
               />
-              {desires.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeDesire(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeDesire(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ))}
-          {errors.desires && <p className="text-red-500 text-xs">{errors.desires}</p>}
           <Button type="button" variant="outline" size="sm" onClick={addDesire}>
             <Plus className="h-4 w-4 mr-1" />
             Agregar Deseo
