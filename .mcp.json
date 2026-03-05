@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "meta-ads": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "meta-ads-mcp@latest"
+      ],
+      "env": {
+        "META_ACCESS_TOKEN": "YOUR_TOKEN_HERE"
+      }
+    },
+    "adlab": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "mcp/adlab-mcp-server.mjs"
+      ],
+      "env": {
+        "ADLAB_API_BASE": "http://127.0.0.1:3001",
+        "ADLAB_API_TIMEOUT_MS": "30000"
+      }
+    }
+  }
+}
